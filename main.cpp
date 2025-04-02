@@ -1,3 +1,4 @@
+#include <cstring>
 #include <iostream>
 #include <regex>
 #include <string>
@@ -26,7 +27,7 @@ void choice1(vector<users> &user_list, chance &chance);
 // Register function
 void regis(vector<users> &user_list, chance &chance) { // not supported if function name is register
     users new_user;
-    regex usernameFormat("^[a-zA-z0-9_]{3,20}$");
+    regex usernameFormat("^[a-zA-Z0-9_]{3,20}$");
 
     if(chance.regis_chance == 0) {
         cout << "\nKesempatan registrasi habis! Silakan mencoba lagi!\n";
@@ -35,12 +36,12 @@ void regis(vector<users> &user_list, chance &chance) { // not supported if funct
     }
 
     cout << "\n========== Register ==========\n" << endl;
-    cout << "Masukkan username: "; cin >> new_user.username;
-    cout << "Masukkan password: "; cin >> new_user.password;
+    cout << "Masukkan username: "; cin.ignore(); getline(cin, new_user.username);
+    cout << "Masukkan password: "; getline(cin, new_user.password);
 
     for(users &user : user_list) {
         if(user.username == new_user.username) {
-            chance.regis_chance-= 1;
+            chance.regis_chance -= 1;
             cout << "Username sudah terdaftar! Silakan gunakan username lain! Kesempatan registrasi " << chance.regis_chance << "X lagi!\n";
             regis(user_list, chance);
         }
