@@ -152,7 +152,6 @@ void choice1(vector<users> &user_list, chance &chance, auth &auth) {
 }
 
 
-
 // Main function
 int main() {
 
