@@ -156,6 +156,8 @@ void choice1(vector<users> &user_list, chance &chance, auth &auth) {
 // Main function
 int main() {
 
+    cout << "hai" << endl;
+    
     // Users data
     vector<users> user_list = {
         {"admin", "admin"},
