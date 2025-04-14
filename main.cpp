@@ -36,21 +36,18 @@ void feature_choice(auth &auth) {
     string choice;
 
     cout << "\n========== Feature Choice ==========\n" << endl;
-    cout << "[1]Tiket Kereta\n[2]Tiket Pesawat\n[3]Lihat Semua Tiket\n[4]Logout\n[5]Exit\nSilakan pilih fitur berdasarkan angka: "; cin >> choice;
+    cout << "[1]Pesan Tiket Kereta\n[2]Lihat Semua Tiket\n[3]Logout\n[4]Exit\nSilakan pilih fitur berdasarkan angka: "; cin >> choice;
 
     if(choice == "1") {
         cout << "\n========== Tiket Kereta ==========\n" << endl;
         cout << "Pilihan Fitur untuk tiket kereta";
     } else if(choice == "2") {
-        cout << "\n========== Tiket Pesawat ==========\n" << endl;
-        cout << "Pilihan Fitur untuk tiket pesawat";
-    } else if(choice == "3") {
         cout << "\n========== Daftar Tiket ==========\n" << endl;
         cout << "List semua tiket, tiket pesawat dan kereta di kelompokkan sesuai jenisnya";
-    } else if(choice == "4") {
+    } else if(choice == "3") {
         cout << "\nLogout berhasil! Sampai jumpa lagi " << auth.user_login << "!";
-    } else if(choice == "5") {
-        cout << "\nTerimakasi telah menggunakan TravelYupi!";
+    } else if(choice == "4") {
+        cout << "\nTerimakasih telah menggunakan TravelYupi!";
         exit(0);
     } else {
         cout << "\nSilakan pilih sesuai angka yang tersedia!";
