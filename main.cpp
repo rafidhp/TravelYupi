@@ -3,6 +3,8 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -22,14 +24,39 @@ struct auth {
     string user_login;
 };
 
+// Simpan user ke file
+void simpanUserKeFile(const users &user) {
+    ofstream file("users.txt", ios::app);
+    if (file.is_open()) {
+        file << user.username << "," << user.password << endl;
+        file.close();
+    }
+}
 
+// Load users dari file ke vector
+void loadUsersDariFile(vector<users> &user_list) {
+    ifstream file("users.txt");
+    if (!file.is_open()) {
+        return;
+    }
+    
+    string line;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string uname, pass;
+        getline(ss, uname, ',');
+        getline(ss, pass);
+        users u = {uname, pass};
+        user_list.push_back(u);
+    }
+    file.close();
+}
 
 // Function declaration
 void feature_choice(auth &auth);
 void regis(vector<users> &user_list, chance &chance, auth &auth);
 void login(vector<users> &user_list, auth &auth);
 void choice1(vector<users> &user_list, chance &chance, auth &auth);
-
 
 // Feature choice function
 void feature_choice(auth &auth) {
@@ -60,7 +87,7 @@ void feature_choice(auth &auth) {
 
 
 // Register function
-void regis(vector<users> &user_list, chance &chance, auth &auth) { // not supported if function name is register
+void regis(vector<users> &user_list, chance &chance, auth &auth) {
     users new_user;
     regex usernameFormat("^[a-zA-Z0-9_]{3,20}$");
 
@@ -77,12 +104,12 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) { // not suppor
     for(users &user : user_list) {
         if(user.username == new_user.username) {
             chance.regis_chance -= 1;
-            cout << "Username sudah terdaftar! Silakan gunakan username lain! Kesempatan registrasi " << chance.regis_chance << "X lagi!\n";
+            cout << "Username sudah terdaftar! Kesempatan registrasi " << chance.regis_chance << "X lagi!\n";
             regis(user_list, chance, auth);
+            return;
         }
     }
 
-    // recheck username and password
     if(new_user.username.empty()) {
         chance.regis_chance -= 1;
         cout << "\nUsername harus diisi! Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
@@ -93,11 +120,11 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) { // not suppor
         regis(user_list, chance, auth);
     } else if(!regex_match(new_user.username, usernameFormat)) {
         chance.regis_chance -= 1;
-        cout << "\nUsername hanya boleh mengandung huruf, angka dan garis bawah! Minimal 3 karakter, Maximal 20 karakter!\n";
-        cout << "Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
+        cout << "\nUsername tidak valid! Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
         regis(user_list, chance, auth);
     } else {
-        user_list.push_back(new_user); // add new user to users vector
+        user_list.push_back(new_user);
+        simpanUserKeFile(new_user); // <-- ini tambahan penting
         cout << "\nSelamat akun berhasil dibuat! Silakan Login ke dalam TravelYupi!\n";
         chance.regis_chance = 3;
         login(user_list, auth);
@@ -154,15 +181,11 @@ void choice1(vector<users> &user_list, chance &chance, auth &auth) {
 
 // Main function
 int main() {
+    vector<users> user_list;
+    chance chance;
+    auth auth;
 
-    // Users data
-    vector<users> user_list = {
-        {"admin", "admin"},
-        {"jaki", "jaki"},
-    };
-    chance chance; // Regis chance data
-    auth auth; // Auth login data
-
+    loadUsersDariFile(user_list); // <<-- penting!
 
     choice1(user_list, chance, auth);
 }
