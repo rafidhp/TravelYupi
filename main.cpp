@@ -362,9 +362,21 @@ void pesanTiket(auth &auth) {
              << setw(10) << filtered_tiket[i].kursi_tersedia << endl;
     }
 
+    // Pilih tiket
+    int pilihan_tiket;
+    cout << "\nPilih tiket (1-" << filtered_tiket.size() << "): "; cin >> pilihan_tiket;
+    
+    if (pilihan_tiket < 1 || pilihan_tiket > filtered_tiket.size()) {
+        cout << "Pilihan tidak valid.\n";
+        cout << "\nTekan 1 untuk kembali: ";
+        int kembali;
+        cin >> kembali;
+        feature_choice(auth);
+        return;
+    }
 
-
-
+    tiket selected_tiket = filtered_tiket[pilihan_tiket - 1];
+    
 
 
 
