@@ -56,8 +56,6 @@ struct pesanan {
     string waktu_pemesanan;
 };
 
-
-
 struct Node {
     pesanan data;       // Data pesanan
     Node* next;         // Pointer ke node berikutnya
