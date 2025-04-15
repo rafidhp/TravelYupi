@@ -56,6 +56,8 @@ struct pesanan {
     string waktu_pemesanan;
 };
 
+
+
 struct Node {
     pesanan data;       // Data pesanan
     Node* next;         // Pointer ke node berikutnya
@@ -88,10 +90,20 @@ string getCurrentDateTime();
 void updateTiketDatabase(const vector<tiket> &tiket_list);
 void addPesananToHistory(pesanan new_pesanan);
 
-// Nama file database
-const string USER_DATABASE = "users_database.txt";
 
-// Fungsi untuk memuat users dari file
+// Fungsi utama
+int main() {
+    vector<users> user_list;
+    chance chance;
+    auth auth;
+    
+    loadUsersFromFile(user_list);
+    choice1(user_list, chance, auth);
+    
+    return 0;
+}
+
+// Fungsi untuk memuat data pengguna dari file
 void loadUsersFromFile(vector<users> &user_list) {
     ifstream file(USER_DATABASE);
     if (!file.is_open()) {
@@ -101,16 +113,18 @@ void loadUsersFromFile(vector<users> &user_list) {
 
     string username, password;
     while (getline(file, username) && getline(file, password)) {
-        user_list.push_back({username, password});
+        users temp_user;
+        temp_user.username = username;
+        temp_user.password = password;
+        user_list.push_back(temp_user);
     }
     
     file.close();
-    cout << "Database berhasil dimuat: " << user_list.size() << " pengguna.\n";
 }
 
-// Fungsi untuk menyimpan user baru ke file
+// Fungsi untuk menyimpan data pengguna ke file
 void saveUserToFile(const users &user) {
-    ofstream file(USER_DATABASE, ios::app); // Append mode
+    ofstream file(USER_DATABASE, ios::app);
     if (!file.is_open()) {
         cout << "Error: Tidak dapat membuka file database.\n";
         return;
@@ -120,8 +134,201 @@ void saveUserToFile(const users &user) {
     file << user.password << endl;
     
     file.close();
-    cout << "Data pengguna berhasil disimpan ke database.\n";
 }
+
+// Fungsi untuk memuat data tiket dari file
+void loadTiketFromFile(vector<tiket> &tiket_list) {
+    ifstream file(TIKET_DATABASE);
+    if (!file.is_open()) {
+        // Jika file tidak ada, buat tiket default
+        tiket default_tikets[] = {
+            {"TY001", "Jakarta", "Bandung", "15-04-2025", "08:00", "100000", 40},
+            {"TY002", "Jakarta", "Bandung", "15-04-2025", "10:00", "120000", 40},
+            {"TY003", "Jakarta", "Surabaya", "15-04-2025", "09:00", "250000", 40},
+            {"TY004", "Jakarta", "Yogyakarta", "15-04-2025", "07:30", "200000", 40},
+            {"TY005", "Bandung", "Jakarta", "15-04-2025", "14:00", "110000", 40},
+            {"TY006", "Surabaya", "Jakarta", "15-04-2025", "15:30", "260000", 40},
+            {"TY007", "Yogyakarta", "Jakarta", "15-04-2025", "16:00", "210000", 40},
+            {"TY008", "Bandung", "Jakarta", "15-04-2025", "13:00", "100000", 40},
+            {"TY009", "Bandung", "Jakarta", "15-04-2025", "11:00", "100000", 40}
+
+
+        };
+        
+        for (size_t i = 0; i < sizeof(default_tikets)/sizeof(default_tikets[0]); i++) {
+            tiket_list.push_back(default_tikets[i]);
+        }
+        
+        // Simpan tiket default ke file
+        ofstream outFile(TIKET_DATABASE);
+        if (outFile.is_open()) {
+            for (size_t i = 0; i < tiket_list.size(); i++) {
+                outFile << tiket_list[i].id << endl;
+                outFile << tiket_list[i].kota_asal << endl;
+                outFile << tiket_list[i].kota_tujuan << endl;
+                outFile << tiket_list[i].tanggal << endl;
+                outFile << tiket_list[i].jam << endl;
+                outFile << tiket_list[i].harga << endl;
+                outFile << tiket_list[i].kursi_tersedia << endl;
+            }
+            outFile.close();
+        }
+        return;
+    }
+
+    tiket temp;
+    string kursi;
+    while (getline(file, temp.id) && 
+           getline(file, temp.kota_asal) && 
+           getline(file, temp.kota_tujuan) &&
+           getline(file, temp.tanggal) && 
+           getline(file, temp.jam) && 
+           getline(file, temp.harga) && 
+           getline(file, kursi)) {
+        temp.kursi_tersedia = stoi(kursi);
+        tiket_list.push_back(temp);
+    }
+    
+    file.close();
+}
+
+// Fungsi untuk memperbarui database tiket
+void updateTiketDatabase(const vector<tiket> &tiket_list) {
+    ofstream file(TIKET_DATABASE);
+    if (!file.is_open()) {
+        cout << "Error: Tidak dapat membuka file database tiket.\n";
+        return;
+    }
+
+    for (size_t i = 0; i < tiket_list.size(); i++) {
+        file << tiket_list[i].id << endl;
+        file << tiket_list[i].kota_asal << endl;
+        file << tiket_list[i].kota_tujuan << endl;
+        file << tiket_list[i].tanggal << endl;
+        file << tiket_list[i].jam << endl;
+        file << tiket_list[i].harga << endl;
+        file << tiket_list[i].kursi_tersedia << endl;
+    }
+    
+    file.close();
+}
+
+// Fungsi untuk memuat data pesanan dari file
+void loadPesananFromFile(vector<pesanan> &pesanan_list) {
+    ifstream file(PESANAN_DATABASE);
+    if (!file.is_open()) {
+        return; // File tidak ada, belum ada pesanan
+    }
+
+    pesanan temp;
+    string jumlah;
+    while (getline(file, temp.username) && 
+           getline(file, temp.id_tiket) && 
+           getline(file, temp.kota_asal) && 
+           getline(file, temp.kota_tujuan) &&
+           getline(file, temp.tanggal) && 
+           getline(file, temp.jam) && 
+           getline(file, temp.nama_penumpang) && 
+           getline(file, temp.no_telp) && 
+           getline(file, temp.email) &&
+           getline(file, jumlah) && 
+           getline(file, temp.nomor_kursi) && 
+           getline(file, temp.total_harga) && 
+           getline(file, temp.metode_pembayaran) &&
+           getline(file, temp.waktu_pemesanan)) {
+        temp.jumlah_tiket = stoi(jumlah);
+        pesanan_list.push_back(temp);
+    }
+    
+    file.close();
+}
+
+// Fungsi untuk menyimpan pesanan baru ke file
+void savePesananToFile(const pesanan &new_pesanan) {
+    ofstream file(PESANAN_DATABASE, ios::app);
+    if (!file.is_open()) {
+        cout << "Error: Tidak dapat membuka file database pesanan.\n";
+        return;
+    }
+
+    file << new_pesanan.username << endl;
+    file << new_pesanan.id_tiket << endl;
+    file << new_pesanan.kota_asal << endl;
+    file << new_pesanan.kota_tujuan << endl;
+    file << new_pesanan.tanggal << endl;
+    file << new_pesanan.jam << endl;
+    file << new_pesanan.nama_penumpang << endl;
+    file << new_pesanan.no_telp << endl;
+    file << new_pesanan.email << endl;
+    file << new_pesanan.jumlah_tiket << endl;
+    file << new_pesanan.nomor_kursi << endl;
+    file << new_pesanan.total_harga << endl;
+    file << new_pesanan.metode_pembayaran << endl;
+    file << new_pesanan.waktu_pemesanan << endl;
+    
+    file.close();
+}
+
+// Fungsi untuk mendapatkan waktu sekarang
+string getCurrentDateTime() {
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    
+    stringstream ss;
+    ss << setfill('0') << setw(2) << ltm->tm_mday << "-"
+       << setfill('0') << setw(2) << (1 + ltm->tm_mon) << "-"
+       << (1900 + ltm->tm_year) << " "
+       << setfill('0') << setw(2) << ltm->tm_hour << ":"
+       << setfill('0') << setw(2) << ltm->tm_min;
+    
+    return ss.str();
+}
+
+// Fungsi untuk melihat tiket
+void lihatTiket(auth &auth) {
+    string kota_asal, kota_tujuan;
+    vector<tiket> tiket_list;
+    
+    loadTiketFromFile(tiket_list);
+    
+    cout << "\n========== Lihat Semua Tiket ==========\n" << endl;
+    cout << "Masukkan kota asal: "; cin >> kota_asal;
+    cout << "Masukkan kota tujuan: "; cin >> kota_tujuan;
+    
+    cout << "\nJadwal kereta dari " << kota_asal << " ke " << kota_tujuan << ":\n" << endl;
+    cout << setw(5) << "No" << setw(10) << "ID" << setw(15) << "Tanggal" << setw(10) << "Jam" 
+         << setw(15) << "Harga" << setw(10) << "Kursi" << endl;
+    cout << string(60, '-') << endl;
+    
+    int count = 0;
+    for (size_t i = 0; i < tiket_list.size(); i++) {
+        if (tiket_list[i].kota_asal == kota_asal && tiket_list[i].kota_tujuan == kota_tujuan) {
+            count++;
+            cout << setw(5) << count << setw(10) << tiket_list[i].id << setw(15) << tiket_list[i].tanggal << setw(10) << tiket_list[i].jam 
+                 << setw(15) << tiket_list[i].harga << setw(10) << tiket_list[i].kursi_tersedia << endl;
+        }
+    }
+    
+    if (count == 0) {
+        cout << "Tidak ada tiket tersedia untuk rute ini.\n";
+    }
+    
+    cout << "\nTekan 1 untuk kembali: ";
+    int kembali;
+    cin >> kembali;
+    feature_choice(auth);
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Feature choice function
