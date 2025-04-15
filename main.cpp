@@ -36,14 +36,14 @@ void feature_choice(auth &auth) {
     string choice;
 
     cout << "\n========== Feature Choice ==========\n" << endl;
-    cout << "[1]Pesan Tiket Kereta\n[2]Lihat Semua Tiket\n[3]Logout\n[4]Exit\nSilakan pilih fitur berdasarkan angka: "; cin >> choice;
+    cout << "[1]Pesan Tiket Kereta\n[2]Cari Kota Tujuan\n[3]Logout\n[4]Exit\nSilakan pilih fitur berdasarkan angka: "; cin >> choice;
 
     if(choice == "1") {
         cout << "\n========== Tiket Kereta ==========\n" << endl;
         cout << "Pilihan Fitur untuk tiket kereta";
     } else if(choice == "2") {
-        cout << "\n========== Daftar Tiket ==========\n" << endl;
-        cout << "List semua tiket, tiket pesawat dan kereta di kelompokkan sesuai jenisnya";
+        cout << "\n========== Cari Tiket ==========\n" << endl;
+        cout << "Input cari tiket";
     } else if(choice == "3") {
         cout << "\nLogout berhasil! Sampai jumpa lagi " << auth.user_login << "!";
     } else if(choice == "4") {
