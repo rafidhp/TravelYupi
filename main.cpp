@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <ctime>
 #include <sstream>
+#include <cctype>
 
 using namespace std;
 
@@ -90,6 +91,16 @@ string getCurrentDateTime();
 void updateTiketDatabase(const vector<tiket> &tiket_list);
 void addPesananToHistory(pesanan new_pesanan);
 
+string capitalize(const string& input) {
+    string result = input;
+    if (!result.empty()) {
+        for (char &c : result) {
+            c = tolower(c);
+        }
+        result[0] = toupper(result[0]);
+    }
+    return result;
+}
 
 // Fungsi utama
 int main() {
@@ -294,7 +305,10 @@ void lihatTiket(auth &auth) {
     cout << "\n========== Lihat Semua Tiket ==========\n" << endl;
     cout << "Masukkan kota asal: "; cin >> kota_asal;
     cout << "Masukkan kota tujuan: "; cin >> kota_tujuan;
-    
+
+    kota_asal = capitalize(kota_asal);
+    kota_tujuan = capitalize(kota_tujuan);
+
     cout << "\nJadwal kereta dari " << kota_asal << " ke " << kota_tujuan << ":\n" << endl;
     cout << setw(5) << "No" << setw(10) << "ID" << setw(15) << "Tanggal" << setw(10) << "Jam" 
          << setw(15) << "Harga" << setw(10) << "Kursi" << endl;
@@ -302,7 +316,7 @@ void lihatTiket(auth &auth) {
     
     int count = 0;
     for (size_t i = 0; i < tiket_list.size(); i++) {
-        if (tiket_list[i].kota_asal == kota_asal && tiket_list[i].kota_tujuan == kota_tujuan) {
+        if (capitalize(tiket_list[i].kota_asal) == kota_asal && capitalize(tiket_list[i].kota_tujuan) == kota_tujuan) {
             count++;
             cout << setw(5) << count << setw(10) << tiket_list[i].id << setw(15) << tiket_list[i].tanggal << setw(10) << tiket_list[i].jam 
                  << setw(15) << tiket_list[i].harga << setw(10) << tiket_list[i].kursi_tersedia << endl;
@@ -319,6 +333,24 @@ void lihatTiket(auth &auth) {
     feature_choice(auth);
 }
 
+// Fungsi validasi nama (hanya huruf dan spasi)
+bool validasiNama(const string& nama) {
+    regex hanya_huruf("^[A-Za-z ]+$");
+    return regex_match(nama, hanya_huruf);
+}
+
+// Fungsi validasi nomor telepon (hanya angka)
+bool validasiNoTelp(const string& no_telp) {
+    regex hanya_angka("^[0-9]{1,15}$");
+    return regex_match(no_telp, hanya_angka);
+}
+
+// Fungsi validasi email (huruf kecil, tidak boleh ada spasi)
+bool validasiEmail(const string& email) {
+    regex format_email("^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$");
+    return regex_match(email, format_email);
+}
+
 // Fungsi untuk memesan tiket
 void pesanTiket(auth &auth) {
     string kota_asal, kota_tujuan, tanggal;
@@ -333,10 +365,14 @@ void pesanTiket(auth &auth) {
     cout << "Masukkan kota tujuan: "; cin >> kota_tujuan;
     cout << "Tanggal keberangkatan (DD-MM-YYYY): "; cin >> tanggal;
     cout << "Banyak tiket: "; cin >> jumlah_tiket;
+
+    kota_asal = capitalize(kota_asal);
+    kota_tujuan = capitalize(kota_tujuan);
+    
     
     // Filter tiket berdasarkan input
     for (size_t i = 0; i < tiket_list.size(); i++) {
-        if (tiket_list[i].kota_asal == kota_asal && tiket_list[i].kota_tujuan == kota_tujuan && 
+        if (capitalize(tiket_list[i].kota_asal) == kota_asal && capitalize(tiket_list[i].kota_tujuan) == kota_tujuan && 
             tiket_list[i].tanggal == tanggal && tiket_list[i].kursi_tersedia >= jumlah_tiket) {
             filtered_tiket.push_back(tiket_list[i]);
         }
@@ -460,9 +496,36 @@ void pesanTiket(auth &auth) {
     new_pesanan->nomor_kursi = nomor_kursi;
 
     cout << "\n========== Formulir Pemesanan ==========\n" << endl;
-    cout << "Nama: "; cin.ignore(); getline(cin, new_pesanan->nama_penumpang);
-    cout << "No. Telepon: "; getline(cin, new_pesanan->no_telp);
-    cout << "Email: "; getline(cin, new_pesanan->email);
+
+    // Input Nama
+    string nama;
+    do {
+        cout << "Nama: "; cin.ignore(); getline(cin, nama);
+        if (!validasiNama(nama)) {
+            cout << "Form Nama Tidak Boleh Menggunakan Angka. Mohon Masukkan Nama Anda Dengan Benar!" << endl;
+        }
+    } while (!validasiNama(nama));
+    new_pesanan->nama_penumpang = nama;
+
+    // Input No. Telepon
+    string no_telp;
+    do {
+        cout << "No. Telepon: "; getline(cin, no_telp);
+        if (!validasiNoTelp(no_telp)) {
+            cout << "No. Telepon Hanya Boleh Diiisi Dengan Angka. Mohon Masukkan No. Telepon Derngan Benar!" << endl;
+        }
+    } while (!validasiNoTelp(no_telp));
+    new_pesanan->no_telp = no_telp;
+
+    // Input Email
+    string email;
+    do {
+        cout << "Email: "; getline(cin, email);
+        if (!validasiEmail(email)) {
+            cout << "Email Tidak Valid. Mohon Masukkan Email Dengan Benar " << endl;
+        }
+    } while (!validasiEmail(email));
+    new_pesanan->email = email;
 
     int lanjut;
     cout << "\nTekan 1 untuk lanjut: ";
@@ -528,7 +591,7 @@ void pesanTiket(auth &auth) {
         return;
     }
 
-    cout << "\nTekan 1 untuk lanjut, 0 untuk kembali: ";
+    cout << "\nTekan 1 untuk lanjut, 0 untuk batalkan pesanan: ";
     cin >> lanjut;
     if (lanjut == 0) {
         cout << "Pemesanan dibatalkan.\n";
