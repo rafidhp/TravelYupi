@@ -350,6 +350,7 @@ void pesanTiket(auth &auth) {
         feature_choice(auth);
         return;
     }
+    
     // Tampilkan tiket yang tersedia
     cout << "\nTiket yang tersedia:\n" << endl;
     cout << setw(5) << "No" << setw(10) << "ID" << setw(15) << "Tanggal" << setw(10) << "Jam" 
@@ -361,7 +362,7 @@ void pesanTiket(auth &auth) {
              << setw(10) << filtered_tiket[i].jam << setw(15) << filtered_tiket[i].harga 
              << setw(10) << filtered_tiket[i].kursi_tersedia << endl;
     }
-
+    
     // Pilih tiket
     int pilihan_tiket;
     cout << "\nPilih tiket (1-" << filtered_tiket.size() << "): "; cin >> pilihan_tiket;
@@ -374,44 +375,306 @@ void pesanTiket(auth &auth) {
         feature_choice(auth);
         return;
     }
-
+    
     tiket selected_tiket = filtered_tiket[pilihan_tiket - 1];
     
+    // Tampilkan kursi
+    cout << "\n========== Pilih Kursi ==========\n" << endl;
+    cout << "Kursi tersedia: " << selected_tiket.kursi_tersedia << endl;
+    
+    // Menggunakan pointer dan array dinamis
+    bool* kursi_status = new bool[40]; // Array dinamis yang berfungsi untuk menyimpan status kursi (terisi/kosong)
 
+    // Inisialisasi array kursi_status dengan false (belum ada yang terisi)
+    for (int i = 0; i < 40; i++) {
+        kursi_status[i] = false;
+    }
+    
+    // Cek kursi yang sudah terisi
+    vector<pesanan> pesanan_list;
+    loadPesananFromFile(pesanan_list);
+    
+    for (size_t i = 0; i < pesanan_list.size(); i++) {
+        if (pesanan_list[i].id_tiket == selected_tiket.id) {
+            istringstream iss(pesanan_list[i].nomor_kursi);
+            string kursi;
+            while (getline(iss, kursi, ',')) {
+                int nomor = stoi(kursi);
+                if (nomor >= 1 && nomor <= 40) {
+                    kursi_status[nomor-1] = true;
+                }
+            }
+        }
+    }
+    
+    // Tampilkan status kursi (8x5 layout)
+    cout << "\nStatus kursi (O=tersedia, X=terisi):\n" << endl;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 5; j++) {
+            int kursi_no = i * 5 + j + 1;
+            if (kursi_no <= 40) {
+                cout << setw(3) << kursi_no << (kursi_status[kursi_no-1] ? "(X)" : "(O)");
+            }
+        }
+        cout << endl;
+    }
+    
+    // Pilih kursi
+    string nomor_kursi = "";
+    for (int i = 0; i < jumlah_tiket; i++) {
+        int kursi;
+        bool valid = false;
+        
+        while (!valid) {
+            cout << "Pilih kursi " << (i+1) << ": "; cin >> kursi;
+            
+            if (kursi < 1 || kursi > 40) {
+                cout << "Nomor kursi tidak valid. Pilih antara 1-40.\n";
+                continue;
+            }
+            
+            if (kursi_status[kursi-1]) {
+                cout << "Kursi sudah terisi. Pilih kursi lain.\n";
+                continue;
+            }
+            
+            valid = true;
+            kursi_status[kursi-1] = true;
+            
+            if (i > 0) nomor_kursi += ",";
+            nomor_kursi += to_string(kursi);
+        }
+    }
+    
+    // Isi formulir pemesanan
+    pesanan* new_pesanan = new pesanan;  // Pointer ke struct pesanan
 
+    // Isi data dari tiket yang dipilih
+    new_pesanan->username = auth.user_login;
+    new_pesanan->id_tiket = selected_tiket.id;
+    new_pesanan->kota_asal = selected_tiket.kota_asal;
+    new_pesanan->kota_tujuan = selected_tiket.kota_tujuan;
+    new_pesanan->tanggal = selected_tiket.tanggal;
+    new_pesanan->jam = selected_tiket.jam;
+    new_pesanan->jumlah_tiket = jumlah_tiket;
+    new_pesanan->nomor_kursi = nomor_kursi;
 
+    cout << "\n========== Formulir Pemesanan ==========\n" << endl;
+    cout << "Nama: "; cin.ignore(); getline(cin, new_pesanan->nama_penumpang);
+    cout << "No. Telepon: "; getline(cin, new_pesanan->no_telp);
+    cout << "Email: "; getline(cin, new_pesanan->email);
 
+    int lanjut;
+    cout << "\nTekan 1 untuk lanjut: ";
+    cin >> lanjut;
+    if (lanjut != 1) {
+        cout << "Pemesanan dibatalkan.\n";
+        cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
+        feature_choice(auth);
+        return;
+    }
 
+    // Hitung total harga
+    int total = stoi(selected_tiket.harga) * jumlah_tiket;
+    new_pesanan->total_harga = to_string(total);
 
+    // Tampilkan detail
+    cout << "\n========== Detail Pemesanan ==========\n" << endl;
+    cout << "ID Tiket: " << new_pesanan->id_tiket << endl;
+    cout << "Rute: " << new_pesanan->kota_asal << " - " << new_pesanan->kota_tujuan << endl;
+    cout << "Tanggal/Jam: " << new_pesanan->tanggal << " / " << new_pesanan->jam << endl;
+    cout << "Nama: " << new_pesanan->nama_penumpang << endl;
+    cout << "Jumlah Tiket: " << new_pesanan->jumlah_tiket << endl;
+    cout << "Nomor Kursi: " << new_pesanan->nomor_kursi << endl;
+    cout << "Total Harga: Rp " << new_pesanan->total_harga << endl;
 
+    cout << "\nTekan 1 untuk bayar sekarang: ";
+    cin >> lanjut;
+    if (lanjut != 1) {
+        cout << "Pemesanan dibatalkan.\n";
+        cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
+        feature_choice(auth);
+        return;
+    }
 
-// Feature choice function
+    // Metode pembayaran
+    cout << "\n========== Metode Pembayaran ==========\n" << endl;
+    cout << "[1] Transfer\n[2] Cash\nPilih metode pembayaran: ";
+    int metode;
+    cin >> metode;
+
+    if (metode == 1) {
+        new_pesanan->metode_pembayaran = "Transfer";
+    } else if (metode == 2) {
+        new_pesanan->metode_pembayaran = "Cash";
+    } else {
+        cout << "Metode tidak valid.\n";
+        cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
+        feature_choice(auth);
+        return;
+    }
+
+    // Form pembayaran
+    cout << "\n========== Form Pembayaran ==========\n" << endl;
+    cout << "Total yang harus dibayar: Rp " << new_pesanan->total_harga << endl;
+    cout << "Masukkan jumlah pembayaran: Rp ";
+    string jumlah_bayar;
+    cin >> jumlah_bayar;
+
+    if (stoi(jumlah_bayar) < stoi(new_pesanan->total_harga)) {
+        cout << "Jumlah pembayaran kurang.\n";
+        cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
+        feature_choice(auth);
+        return;
+    }
+
+    cout << "\nTekan 1 untuk lanjut, 0 untuk kembali: ";
+    cin >> lanjut;
+    if (lanjut == 0) {
+        cout << "Pemesanan dibatalkan.\n";
+        cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
+        feature_choice(auth);
+        return;
+    } else if (lanjut != 1) {
+        cout << "Pilihan tidak valid. Pemesanan dibatalkan.\n";
+        cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
+        feature_choice(auth);
+        return;
+    }
+
+    // Selesaikan pemesanan
+    new_pesanan->waktu_pemesanan = getCurrentDateTime();
+
+    // Update tiket
+    for (int i = 0; i < tiket_list.size(); ++i) {
+        if (tiket_list[i].id == selected_tiket.id) {
+            tiket_list[i].kursi_tersedia -= jumlah_tiket;
+            break;
+        }
+    }
+    updateTiketDatabase(tiket_list);
+
+    // Simpan ke database dan histori
+    savePesananToFile(*new_pesanan);
+    addPesananToHistory(*new_pesanan);
+
+    // Cetak struk
+    ofstream struk("struk_" + new_pesanan->username + "_" + new_pesanan->id_tiket + ".txt");
+    if (struk.is_open()) {
+        struk << "=============== STRUK PEMBAYARAN ===============" << endl;
+        struk << "TravelYupi - Tiket Kereta" << endl;
+        struk << "Waktu Pemesanan: " << new_pesanan->waktu_pemesanan << endl;
+        struk << "==============================================" << endl;
+        struk << "ID Tiket       : " << new_pesanan->id_tiket << endl;
+        struk << "Rute           : " << new_pesanan->kota_asal << " - " << new_pesanan->kota_tujuan << endl;
+        struk << "Tanggal/Jam    : " << new_pesanan->tanggal << " / " << new_pesanan->jam << endl;
+        struk << "Nama Penumpang : " << new_pesanan->nama_penumpang << endl;
+        struk << "Jumlah Tiket   : " << new_pesanan->jumlah_tiket << endl;
+        struk << "Nomor Kursi    : " << new_pesanan->nomor_kursi << endl;
+        struk << "Total Harga    : Rp " << new_pesanan->total_harga << endl;
+        struk << "Metode Pembayaran: " << new_pesanan->metode_pembayaran << endl;
+        struk << "==============================================" << endl;
+        struk << "Terima kasih telah menggunakan TravelYupi!" << endl;
+        struk.close();
+
+        cout << "\nStruk berhasil dicetak ke file struk_" << new_pesanan->username << "_" << new_pesanan->id_tiket << ".txt" << endl;
+    } else {
+        cout << "\nGagal mencetak struk." << endl;
+    }
+
+    cout << "\nPemesanan berhasil!\n";
+    cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
+    feature_choice(auth);
+
+    delete new_pesanan; // Hapus pointer
+}
+
+void addPesananToHistory(pesanan new_pesanan) {
+    // Membuat node baru
+    Node* newNode = new Node;
+    newNode->data = new_pesanan;  // Menyimpan data pesanan
+    newNode->next = nullptr;      // Node baru tidak punya next (akhir list)
+    newNode->prev = tail;         // Pointer prev menunjuk ke node terakhir (tail)
+
+    // Jika linked list tidak kosong, hubungkan tail dengan node baru
+    if (tail != nullptr) {
+        tail->next = newNode;  // Menyambungkan node terakhir dengan node baru
+    }
+
+    // Update tail untuk menunjuk ke node baru
+    tail = newNode;
+
+    // Jika linked list kosong (head null), set head ke node pertama
+    if (head == nullptr) {
+        head = newNode;
+    }
+}
+
+// Fungsi untuk melihat riwayat pesanan
+void riwayatPesanan(auth &auth) {
+    Node* current = head;  // Pointer untuk traversal dari head
+    
+    cout << "\n========== Riwayat Pesanan ==========\n" << endl;
+    
+    bool ada_pesanan = false;
+    while (current != nullptr) {
+        // Cek apakah pesanan cocok dengan username yang sedang login
+        if (current->data.username == auth.user_login) {
+            ada_pesanan = true;
+            cout << "ID Tiket: " << current->data.id_tiket << endl;
+            cout << "Rute: " << current->data.kota_asal << " - " << current->data.kota_tujuan << endl;
+            cout << "Tanggal/Jam: " << current->data.tanggal << " / " << current->data.jam << endl;
+            cout << "Nama: " << current->data.nama_penumpang << endl;
+            cout << "Jumlah Tiket: " << current->data.jumlah_tiket << endl;
+            cout << "Nomor Kursi: " << current->data.nomor_kursi << endl;
+            cout << "Total Harga: Rp " << current->data.total_harga << endl;
+            cout << "Metode Pembayaran: " << current->data.metode_pembayaran << endl;
+            cout << "Waktu Pemesanan: " << current->data.waktu_pemesanan << endl;
+            cout << string(50, '-') << endl;
+        }
+        current = current->next;  // Pindah ke node berikutnya
+    }
+    
+    if (!ada_pesanan) {
+        cout << "Anda belum memiliki riwayat pesanan.\n";
+    }
+
+    cout << "\nTekan 1 untuk kembali: ";
+    int kembali;
+    cin >> kembali;
+    feature_choice(auth);
+}
+
+// Fungsi untuk menu fitur
 void feature_choice(auth &auth) {
     string choice;
 
-    cout << "\n========== Feature Choice ==========\n" << endl;
-    cout << "[1]Pesan Tiket Kereta\n[2]Lihat Semua Tiket\n[3]Logout\n[4]Exit\nSilakan pilih fitur berdasarkan angka: "; cin >> choice;
+    cout << "\n========== Menu Fitur ==========\n" << endl;
+    cout << "[1] Lihat Semua Tiket\n[2] Pesan Tiket\n[3] Riwayat Pesanan\n[4] Logout\n";
+    cout << "Silakan pilih fitur berdasarkan angka: "; 
+    cin >> choice;
 
     if(choice == "1") {
-        cout << "\n========== Tiket Kereta ==========\n" << endl;
-        cout << "Pilihan Fitur untuk tiket kereta";
+        lihatTiket(auth);
     } else if(choice == "2") {
-        cout << "\n========== Daftar Tiket ==========\n" << endl;
-        cout << "List semua tiket, tiket pesawat dan kereta di kelompokkan sesuai jenisnya";
+        pesanTiket(auth);
     } else if(choice == "3") {
-        cout << "\nLogout berhasil! Sampai jumpa lagi " << auth.user_login << "!";
+        riwayatPesanan(auth);
     } else if(choice == "4") {
-        cout << "\nTerimakasih telah menggunakan TravelYupi!";
-        exit(0);
+        cout << "\nLogout berhasil! Sampai jumpa lagi " << auth.user_login << "!" << endl;
+        auth.user_login = ""; // Reset user login
+        vector<users> user_list;
+        chance chance;
+        loadUsersFromFile(user_list);
+        choice1(user_list, chance, auth);
     } else {
-        cout << "\nSilakan pilih sesuai angka yang tersedia!";
+        cout << "\nSilakan pilih sesuai angka yang tersedia!" << endl;
         feature_choice(auth);
     }
 }
 
-
-// Register function
-void regis(vector<users> &user_list, chance &chance, auth &auth) { // not supported if function name is register
+// Fungsi untuk registrasi pengguna baru
+void regis(vector<users> &user_list, chance &chance, auth &auth) {
     users new_user;
     regex usernameFormat("^[a-zA-Z0-9_]{3,20}$");
 
@@ -419,101 +682,97 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) { // not suppor
         cout << "\nKesempatan registrasi habis! Silakan mencoba lagi!\n";
         chance.regis_chance = 3;
         choice1(user_list, chance, auth);
+        return;
     }
 
-    cout << "\n========== Register ==========\n" << endl;
+    cout << "\n========== Registrasi ==========\n" << endl;
     cout << "Masukkan username: "; cin.ignore(); getline(cin, new_user.username);
     cout << "Masukkan password: "; getline(cin, new_user.password);
 
-    for(users &user : user_list) {
-        if(user.username == new_user.username) {
+    for(size_t i = 0; i < user_list.size(); i++) {
+        if(user_list[i].username == new_user.username) {
             chance.regis_chance -= 1;
-            cout << "Username sudah terdaftar! Silakan gunakan username lain! Kesempatan registrasi " << chance.regis_chance << "X lagi!\n";
+            cout << "Username sudah terdaftar! Silakan gunakan username lain! Kesempatan registrasi " 
+                 << chance.regis_chance << "X lagi!\n";
             regis(user_list, chance, auth);
+            return;
         }
     }
 
-    // recheck username and password
+    // Validasi input
     if(new_user.username.empty()) {
         chance.regis_chance -= 1;
         cout << "\nUsername harus diisi! Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
         regis(user_list, chance, auth);
+        return;
     } else if(new_user.password.empty()) {
         chance.regis_chance -= 1;
-        cout << "\nPasssword harus diisi! Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
+        cout << "\nPassword harus diisi! Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
         regis(user_list, chance, auth);
+        return;
     } else if(!regex_match(new_user.username, usernameFormat)) {
         chance.regis_chance -= 1;
         cout << "\nUsername hanya boleh mengandung huruf, angka dan garis bawah! Minimal 3 karakter, Maximal 20 karakter!\n";
         cout << "Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
         regis(user_list, chance, auth);
-    } else {
-        user_list.push_back(new_user); // add new user to users vector
-        cout << "\nSelamat akun berhasil dibuat! Silakan Login ke dalam TravelYupi!\n";
-        chance.regis_chance = 3;
-        login(user_list, auth);
+        return;
     }
+
+    // Jika semua valid, tambahkan user baru
+    user_list.push_back(new_user);
+    saveUserToFile(new_user);
+    cout << "\nRegistrasi berhasil! Silakan login.\n";
+    choice1(user_list, chance, auth);
 }
 
-
-// Login function
+// Fungsi untuk login pengguna
 void login(vector<users> &user_list, auth &auth) {
     string username, password;
-    bool found = false;
 
     cout << "\n========== Login ==========\n" << endl;
-    cout << "Masukkan username: "; cin >> username;
-    cout << "Masukkan password: "; cin >> password;
+    cout << "Masukkan username: "; cin.ignore(); getline(cin, username);
+    cout << "Masukkan password: "; getline(cin, password);
 
-    for(users &user : user_list) {
-        if(user.username == username && user.password == password) {
-            found = true;
-            break;
+    for(size_t i = 0; i < user_list.size(); i++) {
+        if(user_list[i].username == username && user_list[i].password == password) {
+            auth.user_login = username;
+            cout << "\nLogin berhasil! Selamat datang " << auth.user_login << "!" << endl;
+            feature_choice(auth);
+            return;
         }
     }
 
-    if(found) {
-        cout << "\nLogin berhasil! Selamat Datang " << username << " di TravelYupi!\n";
-        auth.user_login = username;
-        feature_choice(auth);
-    } else {
-        cout << "\nUsername atau password salah! Silakan coba lagi!\n";
-    }
+    cout << "\nUsername atau password salah! Silakan coba lagi.\n";
+    vector<users> temp_list;
+    chance temp_chance;
+    choice1(temp_list, temp_chance, auth);
 }
 
+// Fungsi untuk keluar dari program
+void exitProgram() {
+    cout << "\n========== Terima Kasih ==========\n" << endl;
+    cout << "Terima kasih sudah menggunakan layanan TravelYupi!" << endl;
+    cout << "Sampai jumpa kembali di perjalanan berikutnya.\n" << endl;
+    exit(0); // Exit the program
+}
 
-// First choice function
+// Fungsi untuk menu utama (login/registrasi)
 void choice1(vector<users> &user_list, chance &chance, auth &auth) {
     string choice;
 
-    cout << "\n========== TravelYupi ==========\n" << endl;
-    cout << "--- Selamat Datang di TravelYupi ---" << endl;
-    cout << "[1]Login\n[2]Register\n[3]Exit\nSilakan pilih Login atau Register berdasarkan angka: ";cin >> choice;
+    cout << "\n========== Selamat Datang di TravelYupi ==========\n" << endl;
+    cout << "[1] Login\n[2] Registrasi\n[3] Keluar\n";
+    cout << "Silakan pilih menu berdasarkan angka: "; 
+    cin >> choice;
 
     if(choice == "1") {
         login(user_list, auth);
     } else if(choice == "2") {
         regis(user_list, chance, auth);
     } else if(choice == "3") {
-        cout << "\n Terimakasi telah menggunakan TravelYupi! Selamat Tinggal!\n" << endl;
-        exit(0);
+        exitProgram();
     } else {
-        cout << "\nSilakan pilih berdasarkan angka yang tersedia!\n";
+        cout << "\nSilakan pilih sesuai angka yang tersedia!" << endl;
+        choice1(user_list, chance, auth);
     }
-}
-
-
-// Main function
-int main() {
-
-    // Users data
-    vector<users> user_list = {
-        {"admin", "admin"},
-        {"jaki", "jaki"},
-    };
-    chance chance; // Regis chance data
-    auth auth; // Auth login data
-
-
-    choice1(user_list, chance, auth);
 }
