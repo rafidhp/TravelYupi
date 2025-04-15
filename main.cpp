@@ -319,6 +319,24 @@ void lihatTiket(auth &auth) {
     feature_choice(auth);
 }
 
+// Fungsi validasi nama (hanya huruf dan spasi)
+bool validasiNama(const string& nama) {
+    regex hanya_huruf("^[A-Za-z ]+$");
+    return regex_match(nama, hanya_huruf);
+}
+
+// Fungsi validasi nomor telepon (hanya angka)
+bool validasiNoTelp(const string& no_telp) {
+    regex hanya_angka("^[0-9]{1,15}$");
+    return regex_match(no_telp, hanya_angka);
+}
+
+// Fungsi validasi email (huruf kecil, tidak boleh ada spasi)
+bool validasiEmail(const string& email) {
+    regex format_email("^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$");
+    return regex_match(email, format_email);
+}
+
 // Fungsi untuk memesan tiket
 void pesanTiket(auth &auth) {
     string kota_asal, kota_tujuan, tanggal;
@@ -460,9 +478,36 @@ void pesanTiket(auth &auth) {
     new_pesanan->nomor_kursi = nomor_kursi;
 
     cout << "\n========== Formulir Pemesanan ==========\n" << endl;
-    cout << "Nama: "; cin.ignore(); getline(cin, new_pesanan->nama_penumpang);
-    cout << "No. Telepon: "; getline(cin, new_pesanan->no_telp);
-    cout << "Email: "; getline(cin, new_pesanan->email);
+
+    // Input Nama
+    string nama;
+    do {
+        cout << "Nama: "; cin.ignore(); getline(cin, nama);
+        if (!validasiNama(nama)) {
+            cout << "Form Nama Tidak Boleh Menggunakan Angka. Mohon Masukkan Nama Anda Dengan Benar!" << endl;
+        }
+    } while (!validasiNama(nama));
+    new_pesanan->nama_penumpang = nama;
+
+    // Input No. Telepon
+    string no_telp;
+    do {
+        cout << "No. Telepon: "; getline(cin, no_telp);
+        if (!validasiNoTelp(no_telp)) {
+            cout << "No. Telepon Hanya Boleh Diiisi Dengan Angka. Mohon Masukkan No. Telepon Derngan Benar!" << endl;
+        }
+    } while (!validasiNoTelp(no_telp));
+    new_pesanan->no_telp = no_telp;
+
+    // Input Email
+    string email;
+    do {
+        cout << "Email: "; getline(cin, email);
+        if (!validasiEmail(email)) {
+            cout << "Email Tidak Valid. Mohon Masukkan Email Dengan Benar " << endl;
+        }
+    } while (!validasiEmail(email));
+    new_pesanan->email = email;
 
     int lanjut;
     cout << "\nTekan 1 untuk lanjut: ";
