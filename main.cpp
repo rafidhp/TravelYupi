@@ -3,32 +3,127 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <iomanip>
+#include <ctime>
+#include <sstream>
 
 using namespace std;
 
-// Users struct
+// Struct untuk data pengguna
 struct users {
     string username;
     string password;
 };
 
-// Chance struct
+// Struct untuk kesempatan registrasi
 struct chance {
-    int regis_chance = 3;
+    int regis_chance;
+    chance() : regis_chance(3) {} // Constructor untuk inisialisasi
 };
 
-// User login struct
+// Struct untuk autentikasi login
 struct auth {
     string user_login;
 };
 
+// Struct untuk data tiket
+struct tiket {
+    string id;
+    string kota_asal;
+    string kota_tujuan;
+    string tanggal;
+    string jam;
+    string harga;
+    int kursi_tersedia;
+};
+
+// Struct untuk data pesanan
+struct pesanan {
+    string username;
+    string id_tiket;
+    string kota_asal;
+    string kota_tujuan;
+    string tanggal;
+    string jam;
+    string nama_penumpang;
+    string no_telp;
+    string email;
+    int jumlah_tiket;
+    string nomor_kursi;
+    string total_harga;
+    string metode_pembayaran;
+    string waktu_pemesanan;
+};
 
 
-// Function declaration
+
+struct Node {
+    pesanan data;       // Data pesanan
+    Node* next;         // Pointer ke node berikutnya
+    Node* prev;         // Pointer ke node sebelumnya
+};
+
+// Pointer untuk head dan tail linked list
+Node* head = nullptr;
+Node* tail = nullptr;
+
+// Nama file database
+const string USER_DATABASE = "users_database.txt";
+const string TIKET_DATABASE = "tiket_database.txt";
+const string PESANAN_DATABASE = "pesanan_database.txt";
+
+// Deklarasi fungsi
 void feature_choice(auth &auth);
 void regis(vector<users> &user_list, chance &chance, auth &auth);
 void login(vector<users> &user_list, auth &auth);
 void choice1(vector<users> &user_list, chance &chance, auth &auth);
+void loadUsersFromFile(vector<users> &user_list);
+void saveUserToFile(const users &user);
+void lihatTiket(auth &auth);
+void pesanTiket(auth &auth);
+void riwayatPesanan(auth &auth);
+void loadTiketFromFile(vector<tiket> &tiket_list);
+void loadPesananFromFile(vector<pesanan> &pesanan_list);
+void savePesananToFile(const pesanan &new_pesanan);
+string getCurrentDateTime();
+void updateTiketDatabase(const vector<tiket> &tiket_list);
+void addPesananToHistory(pesanan new_pesanan);
+
+// Nama file database
+const string USER_DATABASE = "users_database.txt";
+
+// Fungsi untuk memuat users dari file
+void loadUsersFromFile(vector<users> &user_list) {
+    ifstream file(USER_DATABASE);
+    if (!file.is_open()) {
+        cout << "Database file tidak ditemukan. Membuat database baru.\n";
+        return;
+    }
+
+    string username, password;
+    while (getline(file, username) && getline(file, password)) {
+        user_list.push_back({username, password});
+    }
+    
+    file.close();
+    cout << "Database berhasil dimuat: " << user_list.size() << " pengguna.\n";
+}
+
+// Fungsi untuk menyimpan user baru ke file
+void saveUserToFile(const users &user) {
+    ofstream file(USER_DATABASE, ios::app); // Append mode
+    if (!file.is_open()) {
+        cout << "Error: Tidak dapat membuka file database.\n";
+        return;
+    }
+
+    file << user.username << endl;
+    file << user.password << endl;
+    
+    file.close();
+    cout << "Data pengguna berhasil disimpan ke database.\n";
+}
 
 
 // Feature choice function
