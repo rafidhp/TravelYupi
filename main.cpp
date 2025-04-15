@@ -350,6 +350,17 @@ void pesanTiket(auth &auth) {
         feature_choice(auth);
         return;
     }
+    // Tampilkan tiket yang tersedia
+    cout << "\nTiket yang tersedia:\n" << endl;
+    cout << setw(5) << "No" << setw(10) << "ID" << setw(15) << "Tanggal" << setw(10) << "Jam" 
+         << setw(15) << "Harga" << setw(10) << "Kursi" << endl;
+    cout << string(60, '-') << endl;
+    
+    for (size_t i = 0; i < filtered_tiket.size(); i++) {
+        cout << setw(5) << (i+1) << setw(10) << filtered_tiket[i].id << setw(15) << filtered_tiket[i].tanggal 
+             << setw(10) << filtered_tiket[i].jam << setw(15) << filtered_tiket[i].harga 
+             << setw(10) << filtered_tiket[i].kursi_tersedia << endl;
+    }
 
 
 
