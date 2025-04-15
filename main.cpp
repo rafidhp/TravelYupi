@@ -319,6 +319,37 @@ void lihatTiket(auth &auth) {
     feature_choice(auth);
 }
 
+// Fungsi untuk memesan tiket
+void pesanTiket(auth &auth) {
+    string kota_asal, kota_tujuan, tanggal;
+    int jumlah_tiket;
+    vector<tiket> tiket_list;
+    vector<tiket> filtered_tiket;
+    
+    loadTiketFromFile(tiket_list);
+    
+    cout << "\n========== Pesan Tiket ==========\n" << endl;
+    cout << "Masukkan kota asal: "; cin >> kota_asal;
+    cout << "Masukkan kota tujuan: "; cin >> kota_tujuan;
+    cout << "Tanggal keberangkatan (DD-MM-YYYY): "; cin >> tanggal;
+    cout << "Banyak tiket: "; cin >> jumlah_tiket;
+    
+    // Filter tiket berdasarkan input
+    for (size_t i = 0; i < tiket_list.size(); i++) {
+        if (tiket_list[i].kota_asal == kota_asal && tiket_list[i].kota_tujuan == kota_tujuan && 
+            tiket_list[i].tanggal == tanggal && tiket_list[i].kursi_tersedia >= jumlah_tiket) {
+            filtered_tiket.push_back(tiket_list[i]);
+        }
+    }
+    
+    if (filtered_tiket.empty()) {
+        cout << "\nTidak ada tiket tersedia untuk kriteria yang Anda pilih.\n";
+        cout << "\nTekan 1 untuk kembali: ";
+        int kembali;
+        cin >> kembali;
+        feature_choice(auth);
+        return;
+    }
 
 
 
