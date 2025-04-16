@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <ctime>
 #include <sstream>
+#include <cctype>
 
 using namespace std;
 
@@ -90,6 +91,16 @@ string getCurrentDateTime();
 void updateTiketDatabase(const vector<tiket> &tiket_list);
 void addPesananToHistory(pesanan new_pesanan);
 
+string capitalize(const string& input) {
+    string result = input;
+    if (!result.empty()) {
+        for (char &c : result) {
+            c = tolower(c);
+        }
+        result[0] = toupper(result[0]);
+    }
+    return result;
+}
 
 // Fungsi utama
 int main() {
@@ -294,7 +305,10 @@ void lihatTiket(auth &auth) {
     cout << "\n========== Lihat Semua Tiket ==========\n" << endl;
     cout << "Masukkan kota asal: "; cin >> kota_asal;
     cout << "Masukkan kota tujuan: "; cin >> kota_tujuan;
-    
+
+    kota_asal = capitalize(kota_asal);
+    kota_tujuan = capitalize(kota_tujuan);
+
     cout << "\nJadwal kereta dari " << kota_asal << " ke " << kota_tujuan << ":\n" << endl;
     cout << setw(5) << "No" << setw(10) << "ID" << setw(15) << "Tanggal" << setw(10) << "Jam" 
          << setw(15) << "Harga" << setw(10) << "Kursi" << endl;
@@ -302,7 +316,7 @@ void lihatTiket(auth &auth) {
     
     int count = 0;
     for (size_t i = 0; i < tiket_list.size(); i++) {
-        if (tiket_list[i].kota_asal == kota_asal && tiket_list[i].kota_tujuan == kota_tujuan) {
+        if (capitalize(tiket_list[i].kota_asal) == kota_asal && capitalize(tiket_list[i].kota_tujuan) == kota_tujuan) {
             count++;
             cout << setw(5) << count << setw(10) << tiket_list[i].id << setw(15) << tiket_list[i].tanggal << setw(10) << tiket_list[i].jam 
                  << setw(15) << tiket_list[i].harga << setw(10) << tiket_list[i].kursi_tersedia << endl;
@@ -351,10 +365,14 @@ void pesanTiket(auth &auth) {
     cout << "Masukkan kota tujuan: "; cin >> kota_tujuan;
     cout << "Tanggal keberangkatan (DD-MM-YYYY): "; cin >> tanggal;
     cout << "Banyak tiket: "; cin >> jumlah_tiket;
+
+    kota_asal = capitalize(kota_asal);
+    kota_tujuan = capitalize(kota_tujuan);
+    
     
     // Filter tiket berdasarkan input
     for (size_t i = 0; i < tiket_list.size(); i++) {
-        if (tiket_list[i].kota_asal == kota_asal && tiket_list[i].kota_tujuan == kota_tujuan && 
+        if (capitalize(tiket_list[i].kota_asal) == kota_asal && capitalize(tiket_list[i].kota_tujuan) == kota_tujuan && 
             tiket_list[i].tanggal == tanggal && tiket_list[i].kursi_tersedia >= jumlah_tiket) {
             filtered_tiket.push_back(tiket_list[i]);
         }
@@ -573,7 +591,7 @@ void pesanTiket(auth &auth) {
         return;
     }
 
-    cout << "\nTekan 1 untuk lanjut, 0 untuk kembali: ";
+    cout << "\nTekan 1 untuk lanjut, 0 untuk batalkan pesanan: ";
     cin >> lanjut;
     if (lanjut == 0) {
         cout << "Pemesanan dibatalkan.\n";
