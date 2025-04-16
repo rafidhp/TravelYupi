@@ -365,9 +365,27 @@ void pesanTiket(auth &auth) {
     
     loadTiketFromFile(tiket_list);
     
-    cout << "\n========== Pesan Tiket ==========\n" << endl;
-    cout << "Masukkan kota asal: "; cin >> kota_asal;
-    cout << "Masukkan kota tujuan: "; cin >> kota_tujuan;
+    regex hanya_huruf("^[A-Za-z ]+$");
+
+cout << "\n========== Pesan Tiket ==========\n" << endl;
+
+// Validasi kota asal
+do {
+    cout << "Masukkan kota asal: ";
+    cin >> kota_asal;
+    if (!regex_match(kota_asal, hanya_huruf)) {
+        cout << "Kota asal hanya boleh diisi dengan huruf. Silakan isi kembali.\n";
+    }
+} while (!regex_match(kota_asal, hanya_huruf));
+
+// Validasi kota tujuan
+do {
+    cout << "Masukkan kota tujuan: ";
+    cin >> kota_tujuan;
+    if (!regex_match(kota_tujuan, hanya_huruf)) {
+        cout << "Kota tujuan hanya boleh diisi dengan huruf. Silakan isi kembali.\n";
+    }
+} while (!regex_match(kota_tujuan, hanya_huruf));
 
 do {
     cout << "Tanggal keberangkatan (DD-MM-YYYY): "; cin >> tanggal;
