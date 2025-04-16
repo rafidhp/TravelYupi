@@ -368,8 +368,24 @@ void pesanTiket(auth &auth) {
     cout << "\n========== Pesan Tiket ==========\n" << endl;
     cout << "Masukkan kota asal: "; cin >> kota_asal;
     cout << "Masukkan kota tujuan: "; cin >> kota_tujuan;
+
+do {
     cout << "Tanggal keberangkatan (DD-MM-YYYY): "; cin >> tanggal;
-    cout << "Banyak tiket: "; cin >> jumlah_tiket;
+    regex format_tanggal("^[0-9]{2}-[0-9]{2}-[0-9]{4}$");
+    if (!regex_match(tanggal, format_tanggal)) {
+        cout << "Format tanggal tidak valid. Gunakan format DD-MM-YYYY dan hanya angka!\n";
+    }
+} while (!regex_match(tanggal, regex("^[0-9]{2}-[0-9]{2}-[0-9]{4}$")));
+
+string input_jumlah;
+do {
+    cout << "Banyak tiket: "; cin >> input_jumlah;
+    regex hanya_angka("^[0-9]+$");
+    if (!regex_match(input_jumlah, hanya_angka)) {
+        cout << "Jumlah tiket harus diisi dengan angka!\n";
+    }
+} while (!regex_match(input_jumlah, regex("^[0-9]+$")));
+jumlah_tiket = stoi(input_jumlah);
 
     kota_asal = capitalize(kota_asal);
     kota_tujuan = capitalize(kota_tujuan);
