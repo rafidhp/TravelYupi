@@ -340,13 +340,13 @@ void lihatTiket(auth &auth) {
 
 // Fungsi validasi nama (hanya huruf dan spasi)
 bool validasiNama(const string& nama) {
-    regex hanya_huruf("^[A-Za-z ]+$");
+    regex hanya_huruf("^[A-Za-z ]{3,}$");
     return regex_match(nama, hanya_huruf);
 }
 
-// Fungsi validasi nomor telepon (hanya angka)
+// Fungsi validasi nomor telepon (hanya angka, minimal 11 angka)
 bool validasiNoTelp(const string& no_telp) {
-    regex hanya_angka("^[0-9]{1,15}$");
+    regex hanya_angka("^[0-9]{11,15}$");
     return regex_match(no_telp, hanya_angka);
 }
 
@@ -367,43 +367,44 @@ void pesanTiket(auth &auth) {
     
     regex hanya_huruf("^[A-Za-z ]+$");
 
-cout << "\n========== Pesan Tiket ==========\n" << endl;
+    cout << "\n========== Pesan Tiket ==========\n" << endl;
 
-// Validasi kota asal
-do {
-    cout << "Masukkan kota asal: ";
-    cin >> kota_asal;
-    if (!regex_match(kota_asal, hanya_huruf)) {
-        cout << "Kota asal hanya boleh diisi dengan huruf. Silakan isi kembali.\n";
-    }
-} while (!regex_match(kota_asal, hanya_huruf));
+    // Validasi kota asal
+    do {
+        cout << "Masukkan kota asal: ";
+        cin >> kota_asal;
+        if (!regex_match(kota_asal, hanya_huruf)) {
+            cout << "Kota asal hanya boleh diisi dengan huruf. Silakan isi kembali.\n";
+        }
+    } while (!regex_match(kota_asal, hanya_huruf));
 
-// Validasi kota tujuan
-do {
-    cout << "Masukkan kota tujuan: ";
-    cin >> kota_tujuan;
-    if (!regex_match(kota_tujuan, hanya_huruf)) {
-        cout << "Kota tujuan hanya boleh diisi dengan huruf. Silakan isi kembali.\n";
-    }
-} while (!regex_match(kota_tujuan, hanya_huruf));
+    // Validasi kota tujuan
+    do {
+        cout << "Masukkan kota tujuan: ";
+        cin >> kota_tujuan;
+        if (!regex_match(kota_tujuan, hanya_huruf)) {
+            cout << "Kota tujuan hanya boleh diisi dengan huruf. Silakan isi kembali.\n";
+        }
+    } while (!regex_match(kota_tujuan, hanya_huruf));
 
-do {
-    cout << "Tanggal keberangkatan (DD-MM-YYYY): "; cin >> tanggal;
-    regex format_tanggal("^[0-9]{2}-[0-9]{2}-[0-9]{4}$");
-    if (!regex_match(tanggal, format_tanggal)) {
-        cout << "Format tanggal tidak valid. Gunakan format DD-MM-YYYY dan hanya angka!\n";
-    }
-} while (!regex_match(tanggal, regex("^[0-9]{2}-[0-9]{2}-[0-9]{4}$")));
+    do {
+        cout << "Tanggal keberangkatan (DD-MM-YYYY): "; cin >> tanggal;
+        regex format_tanggal("^[0-9]{2}-[0-9]{2}-[0-9]{4}$");
+        if (!regex_match(tanggal, format_tanggal)) {
+            cout << "Format tanggal tidak valid. Gunakan format DD-MM-YYYY dan hanya angka!\n";
+        }
+    } while (!regex_match(tanggal, regex("^[0-9]{2}-[0-9]{2}-[0-9]{4}$")));
 
-string input_jumlah;
-do {
-    cout << "Banyak tiket: "; cin >> input_jumlah;
-    regex hanya_angka("^[0-9]+$");
-    if (!regex_match(input_jumlah, hanya_angka)) {
-        cout << "Jumlah tiket harus diisi dengan angka!\n";
-    }
-} while (!regex_match(input_jumlah, regex("^[0-9]+$")));
-jumlah_tiket = stoi(input_jumlah);
+    string input_jumlah;
+    do {
+        cout << "Banyak tiket: "; cin >> input_jumlah;
+        regex hanya_angka("^[1-9]{1,2}$");
+        if (!regex_match(input_jumlah, hanya_angka)) {
+            cout << "Jumlah tiket harus diisi dengan angka! Tidak boleh kurang dari 1 dan lebih dari 99!\n";
+        }
+    } while (!regex_match(input_jumlah, regex("^[1-9]{1,2}$")));
+    
+    jumlah_tiket = stoi(input_jumlah);
 
     kota_asal = capitalize(kota_asal);
     kota_tujuan = capitalize(kota_tujuan);
@@ -551,7 +552,7 @@ jumlah_tiket = stoi(input_jumlah);
     do {
         cout << "No. Telepon: "; getline(cin, no_telp);
         if (!validasiNoTelp(no_telp)) {
-            cout << "No. Telepon Hanya Boleh Diiisi Dengan Angka. Mohon Masukkan No. Telepon Derngan Benar!" << endl;
+            cout << "No. Telepon Hanya Boleh Diiisi Dengan Angka dan minimal 11 angka! Mohon Masukkan No. Telepon Derngan Benar!" << endl;
         }
     } while (!validasiNoTelp(no_telp));
     new_pesanan->no_telp = no_telp;
@@ -628,6 +629,8 @@ jumlah_tiket = stoi(input_jumlah);
         cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
         feature_choice(auth);
         return;
+    } else if(stoi(jumlah_bayar) > stoi(new_pesanan->total_harga)) {
+        cout << "\nKembalian : " << stoi(jumlah_bayar) - stoi(new_pesanan->total_harga) << endl;
     }
 
     cout << "\nTekan 1 untuk lanjut, 0 untuk batalkan pesanan: ";
