@@ -297,36 +297,41 @@ string getCurrentDateTime() {
 
 // Fungsi untuk melihat tiket
 void lihatTiket(auth &auth) {
-    string kota_asal, kota_tujuan;
     vector<tiket> tiket_list;
-    
-    loadTiketFromFile(tiket_list);
-    
-    cout << "\n========== Lihat Semua Tiket ==========\n" << endl;
-    cout << "Masukkan kota asal: "; cin >> kota_asal;
-    cout << "Masukkan kota tujuan: "; cin >> kota_tujuan;
+    loadTiketFromFile(tiket_list); // Memuat data tiket dari file
 
-    kota_asal = capitalize(kota_asal);
-    kota_tujuan = capitalize(kota_tujuan);
-
-    cout << "\nJadwal kereta dari " << kota_asal << " ke " << kota_tujuan << ":\n" << endl;
-    cout << setw(5) << "No" << setw(10) << "ID" << setw(15) << "Tanggal" << setw(10) << "Jam" 
-         << setw(15) << "Harga" << setw(10) << "Kursi" << endl;
-    cout << string(60, '-') << endl;
+    cout << "\n========== Daftar Semua Tiket Tersedia ==========\n" << endl;
     
-    int count = 0;
-    for (size_t i = 0; i < tiket_list.size(); i++) {
-        if (capitalize(tiket_list[i].kota_asal) == kota_asal && capitalize(tiket_list[i].kota_tujuan) == kota_tujuan) {
-            count++;
-            cout << setw(5) << count << setw(10) << tiket_list[i].id << setw(15) << tiket_list[i].tanggal << setw(10) << tiket_list[i].jam 
-                 << setw(15) << tiket_list[i].harga << setw(10) << tiket_list[i].kursi_tersedia << endl;
+    if (tiket_list.empty()) {
+        cout << "Tidak ada tiket tersedia saat ini.\n";
+    } else {
+        // Header tabel
+        cout << setw(5) << "No" 
+             << setw(10) << "ID" 
+             << setw(15) << "Kota Asal" 
+             << setw(15) << "Kota Tujuan"
+             << setw(15) << "Tanggal" 
+             << setw(10) << "Jam" 
+             << setw(15) << "Harga" 
+             << setw(10) << "Kursi" 
+             << endl;
+        cout << string(90, '-') << endl;
+        
+        // Menampilkan semua tiket
+        for (size_t i = 0; i < tiket_list.size(); i++) {
+            cout << setw(5) << (i + 1) 
+                 << setw(10) << tiket_list[i].id 
+                 << setw(15) << tiket_list[i].kota_asal 
+                 << setw(15) << tiket_list[i].kota_tujuan
+                 << setw(15) << tiket_list[i].tanggal 
+                 << setw(10) << tiket_list[i].jam 
+                 << setw(15) << tiket_list[i].harga 
+                 << setw(10) << tiket_list[i].kursi_tersedia 
+                 << endl;
         }
     }
     
-    if (count == 0) {
-        cout << "Tidak ada tiket tersedia untuk rute ini.\n";
-    }
-    
+    // Kembali ke menu fitur
     cout << "\nTekan 1 untuk kembali: ";
     int kembali;
     cin >> kembali;
@@ -741,51 +746,64 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
     users new_user;
     regex usernameFormat("^[a-zA-Z0-9_]{3,20}$");
 
-    if(chance.regis_chance == 0) {
+    if (chance.regis_chance == 0) {
         cout << "\nKesempatan registrasi habis! Silakan mencoba lagi!\n";
-        chance.regis_chance = 3;
+        chance.regis_chance = 3; // Reset kesempatan
         choice1(user_list, chance, auth);
         return;
     }
 
     cout << "\n========== Registrasi ==========\n" << endl;
-    cout << "Masukkan username: "; cin.ignore(); getline(cin, new_user.username);
-    cout << "Masukkan password: "; getline(cin, new_user.password);
+    cout << "Masukkan username: "; 
+    cin.ignore(); 
+    getline(cin, new_user.username);
+    cout << "Masukkan password: "; 
+    getline(cin, new_user.password);
 
-    for(size_t i = 0; i < user_list.size(); i++) {
-        if(user_list[i].username == new_user.username) {
-            chance.regis_chance -= 1;
-            cout << "Username sudah terdaftar! Silakan gunakan username lain! Kesempatan registrasi " 
-                 << chance.regis_chance << "X lagi!\n";
-            regis(user_list, chance, auth);
-            return;
+    // CEK APAKAH USERNAME SUDAH TERDAFTAR
+    bool username_sudah_ada = false;
+    for (const users &user : user_list) {
+        if (user.username == new_user.username) {
+            username_sudah_ada = true;
+            break;
         }
     }
 
-    // Validasi input
-    if(new_user.username.empty()) {
+    if (username_sudah_ada) {
         chance.regis_chance -= 1;
-        cout << "\nUsername harus diisi! Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
+        cout << "\nUsername sudah terdaftar! Silakan gunakan username lain.\n";
+        cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
+        regis(user_list, chance, auth); // Rekursif, ulangi registrasi
+        return;
+    }
+
+    // **VALIDASI INPUT**
+    if (new_user.username.empty()) {
+        chance.regis_chance -= 1;
+        cout << "\nUsername harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
         return;
-    } else if(new_user.password.empty()) {
+    } 
+    else if (new_user.password.empty()) {
         chance.regis_chance -= 1;
-        cout << "\nPassword harus diisi! Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
+        cout << "\nPassword harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
         return;
-    } else if(!regex_match(new_user.username, usernameFormat)) {
+    } 
+    else if (!regex_match(new_user.username, usernameFormat)) {
         chance.regis_chance -= 1;
-        cout << "\nUsername hanya boleh mengandung huruf, angka dan garis bawah! Minimal 3 karakter, Maximal 20 karakter!\n";
-        cout << "Kesempatan registrasi " << chance.regis_chance << "x lagi!\n";
+        cout << "\nUsername hanya boleh mengandung huruf, angka, dan underscore (_).\n";
+        cout << "Minimal 3 karakter, maksimal 20 karakter.\n";
+        cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
         return;
     }
 
-    // Jika semua valid, tambahkan user baru
+    // **JIKA SEMUA VALID, TAMBAHKAN USER BARU**
     user_list.push_back(new_user);
-    saveUserToFile(new_user);
+    saveUserToFile(new_user); // Simpan ke file database
     cout << "\nRegistrasi berhasil! Silakan login.\n";
-    choice1(user_list, chance, auth);
+    choice1(user_list, chance, auth); // Kembali ke menu utama
 }
 
 // Fungsi untuk login pengguna
