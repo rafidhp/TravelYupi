@@ -484,7 +484,7 @@ void pesanTiket(auth &auth) {
     do {
         cout << "Nama: "; cin.ignore(); getline(cin, nama);
         if (!validasiNama(nama)) {
-            cout << "Form Nama Tidak Boleh Menggunakan Angka. Mohon Masukkan Nama Anda Dengan Benar!" << endl;
+            cout << "Nama Hanya Boleh Diisi Dengan Huruf. Mohon Masukkan Nama Anda Dengan Benar!" << endl;
         }
     } while (!validasiNama(nama));
     new_pesanan->nama_penumpang = nama;
