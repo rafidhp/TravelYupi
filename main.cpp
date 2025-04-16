@@ -803,7 +803,7 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
     user_list.push_back(new_user);
     saveUserToFile(new_user); // Simpan ke file database
     cout << "\nRegistrasi berhasil! Silakan login.\n";
-    choice1(user_list, chance, auth); // Kembali ke menu utama
+    login(user_list, auth); // ke login page
 }
 
 // Fungsi untuk login pengguna
