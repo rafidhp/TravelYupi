@@ -567,10 +567,11 @@ void pesanTiket(auth &auth) {
     } while (!validasiEmail(email));
     new_pesanan->email = email;
 
-    int lanjut;
-    cout << "\nTekan 1 untuk lanjut: ";
-    cin >> lanjut;
-    if (lanjut != 1) {
+    string lanjut;
+
+    cout << "\nTekan 1 untuk lanjut: "; cin >> lanjut;
+
+    if (lanjut != "1") {
         cout << "Pemesanan dibatalkan.\n";
         cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
         feature_choice(auth);
@@ -591,9 +592,9 @@ void pesanTiket(auth &auth) {
     cout << "Nomor Kursi: " << new_pesanan->nomor_kursi << endl;
     cout << "Total Harga: Rp " << new_pesanan->total_harga << endl;
 
-    cout << "\nTekan 1 untuk bayar sekarang: ";
-    cin >> lanjut;
-    if (lanjut != 1) {
+    cout << "\nTekan 1 untuk bayar sekarang: "; cin >> lanjut;
+
+    if (lanjut != "1") {
         cout << "Pemesanan dibatalkan.\n";
         cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
         feature_choice(auth);
@@ -602,13 +603,13 @@ void pesanTiket(auth &auth) {
 
     // Metode pembayaran
     cout << "\n========== Metode Pembayaran ==========\n" << endl;
-    cout << "[1] Transfer\n[2] Cash\nPilih metode pembayaran: ";
-    int metode;
-    cin >> metode;
+    string metode;
 
-    if (metode == 1) {
+    cout << "[1] Transfer\n[2] Cash\nPilih metode pembayaran: "; cin >> metode;
+
+    if (metode == "1") {
         new_pesanan->metode_pembayaran = "Transfer";
-    } else if (metode == 2) {
+    } else if (metode == "2") {
         new_pesanan->metode_pembayaran = "Cash";
     } else {
         cout << "Metode tidak valid.\n";
@@ -620,9 +621,10 @@ void pesanTiket(auth &auth) {
     // Form pembayaran
     cout << "\n========== Form Pembayaran ==========\n" << endl;
     cout << "Total yang harus dibayar: Rp " << new_pesanan->total_harga << endl;
-    cout << "Masukkan jumlah pembayaran: Rp ";
+
     string jumlah_bayar;
-    cin >> jumlah_bayar;
+
+    cout << "Masukkan jumlah pembayaran: Rp "; cin >> jumlah_bayar;
 
     if (stoi(jumlah_bayar) < stoi(new_pesanan->total_harga)) {
         cout << "Jumlah pembayaran kurang.\n";
@@ -635,12 +637,12 @@ void pesanTiket(auth &auth) {
 
     cout << "\nTekan 1 untuk lanjut, 0 untuk batalkan pesanan: ";
     cin >> lanjut;
-    if (lanjut == 0) {
+    if (lanjut == "0") {
         cout << "Pemesanan dibatalkan.\n";
         cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
         feature_choice(auth);
         return;
-    } else if (lanjut != 1) {
+    } else if (lanjut != "1") {
         cout << "Pilihan tidak valid. Pemesanan dibatalkan.\n";
         cout << "\nTekan 1 untuk kembali: "; cin >> lanjut;
         feature_choice(auth);
@@ -744,9 +746,9 @@ void riwayatPesanan(auth &auth) {
         cout << "Anda belum memiliki riwayat pesanan.\n";
     }
 
-    cout << "\nTekan 1 untuk kembali: ";
     int kembali;
-    cin >> kembali;
+
+    cout << "\nTekan 1 untuk kembali: "; cin >> kembali;
     feature_choice(auth);
 }
 
@@ -756,8 +758,7 @@ void feature_choice(auth &auth) {
 
     cout << "\n========== Menu Fitur ==========\n" << endl;
     cout << "[1] Lihat Semua Tiket\n[2] Pesan Tiket\n[3] Riwayat Pesanan\n[4] Logout\n";
-    cout << "Silakan pilih fitur berdasarkan angka: "; 
-    cin >> choice;
+    cout << "Silakan pilih fitur berdasarkan angka: "; cin >> choice;
 
     if(choice == "1") {
         lihatTiket(auth);
@@ -791,11 +792,8 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
     }
 
     cout << "\n========== Registrasi ==========\n" << endl;
-    cout << "Masukkan username: "; 
-    cin.ignore(); 
-    getline(cin, new_user.username);
-    cout << "Masukkan password: "; 
-    getline(cin, new_user.password);
+    cout << "Masukkan username: "; cin.ignore(); getline(cin, new_user.username);
+    cout << "Masukkan password: "; getline(cin, new_user.password);
 
     // CEK APAKAH USERNAME SUDAH TERDAFTAR
     bool username_sudah_ada = false;
@@ -810,8 +808,7 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
         chance.regis_chance -= 1;
         cout << "\nUsername sudah terdaftar! Silakan gunakan username lain.\n";
         cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
-        regis(user_list, chance, auth); // Rekursif, ulangi registrasi
-        return;
+        regis(user_list, chance, auth);
     }
 
     // **VALIDASI INPUT**
@@ -819,27 +816,24 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
         chance.regis_chance -= 1;
         cout << "\nUsername harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
-        return;
-    } 
-    else if (new_user.password.empty()) {
+    } else if (new_user.password.empty()) {
         chance.regis_chance -= 1;
         cout << "\nPassword harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
-        return;
-    } 
-    else if (!regex_match(new_user.username, usernameFormat)) {
+    } else if (!regex_match(new_user.username, usernameFormat)) {
         chance.regis_chance -= 1;
         cout << "\nUsername hanya boleh mengandung huruf, angka, dan underscore (_).\n";
         cout << "Minimal 3 karakter, maksimal 20 karakter.\n";
         cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
-        return;
     }
 
     // **JIKA SEMUA VALID, TAMBAHKAN USER BARU**
     user_list.push_back(new_user);
     saveUserToFile(new_user); // Simpan ke file database
     cout << "\nRegistrasi berhasil! Silakan login.\n";
+
+    chance.regis_chance = 3;
     login(user_list, auth); // ke login page
 }
 
@@ -880,8 +874,7 @@ void choice1(vector<users> &user_list, chance &chance, auth &auth) {
 
     cout << "\n========== Selamat Datang di TravelYupi ==========\n" << endl;
     cout << "[1] Login\n[2] Registrasi\n[3] Keluar\n";
-    cout << "Silakan pilih menu berdasarkan angka: "; 
-    cin >> choice;
+    cout << "Silakan pilih menu berdasarkan angka: "; cin >> choice;
 
     if(choice == "1") {
         login(user_list, auth);
