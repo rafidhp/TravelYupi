@@ -351,7 +351,7 @@ bool validasiNama(const string& nama) {
     return regex_match(nama, hanya_huruf);
 }
 
-// Fungsi validasi nomor telepon (hanya angka)
+// Fungsi validasi nomor telepon (hanya angka, minimal 11 angka)
 bool validasiNoTelp(const string& no_telp) {
     regex hanya_angka("^[0-9]{11,15}$");
     return regex_match(no_telp, hanya_angka);
@@ -541,6 +541,8 @@ void pesanTiket(auth &auth) {
     
     loadTiketFromFile(tiket_list);
     
+    regex hanya_huruf("^[A-Za-z ]+$");
+
     cout << "\n========== Pesan Tiket ==========\n" << endl;
     
     
@@ -594,7 +596,10 @@ void pesanTiket(auth &auth) {
             continue;
         }
         
-    } while (false);
+        // Jika semua validasi berhasil, keluar dari loop
+        break;
+        
+    } while (true);
 
     kota_asal = capitalize(kota_asal);
     kota_tujuan = capitalize(kota_tujuan);
@@ -655,7 +660,41 @@ void pesanTiket(auth &auth) {
         // Cek jika angka di luar range
         if (pilihan_tiket < 1 || pilihan_tiket > filtered_tiket.size()) {
             cout << "Pilihan harus antara 1-" << filtered_tiket.size() << "!\n";
-            
+            // Validasi input jumlah tiket
+string input_jumlah;
+do {
+    cout << "Banyak tiket: ";
+    getline(cin, input_jumlah);
+    
+    if (input_jumlah.empty()) {
+        cout << "Input tidak boleh kosong!\n";
+        continue;
+    }
+    
+    bool is_number = true;
+    for (char c : input_jumlah) {
+        if (!isdigit(c)) {
+            is_number = false;
+            break;
+        }
+    }
+    
+    if (!is_number) {
+        cout << "Hanya boleh diisi dengan angka!\n";
+        continue;
+    }
+    
+    jumlah_tiket = stoi(input_jumlah);
+    
+    if (jumlah_tiket <= 0) {
+        cout << "Jumlah tiket harus lebih dari 0!\n";
+        continue;
+    }
+    
+    // Jika semua validasi berhasil, keluar dari loop
+    break;
+    
+} while (true);
             // Tampilkan daftar tiket lagi
             cout << "\nTiket yang tersedia:\n" << endl;
             cout << setw(5) << "No" << setw(10) << "ID" << setw(15) << "Tanggal" 
@@ -719,30 +758,56 @@ void pesanTiket(auth &auth) {
     
     // Pilih kursi
     string nomor_kursi = "";
-    for (int i = 0; i < jumlah_tiket; i++) {
-        int kursi;
-        bool valid = false;
+for (int i = 0; i < jumlah_tiket; i++) {
+    int kursi;
+    bool valid = false;
+    string input_kursi;
+    
+    while (!valid) {
+        cout << "Pilih kursi: " ;
+        getline(cin, input_kursi);
         
-        while (!valid) {
-            cout << "Pilih kursi " << (i+1) << ": "; cin >> kursi;
-            
-            if (kursi < 1 || kursi > 40) {
-                cout << "Nomor kursi tidak valid. Pilih antara 1-40.\n";
-                continue;
-            }
-            
-            if (kursi_status[kursi-1]) {
-                cout << "Kursi sudah terisi. Pilih kursi lain.\n";
-                continue;
-            }
-            
-            valid = true;
-            kursi_status[kursi-1] = true;
-            
-            if (i > 0) nomor_kursi += ",";
-            nomor_kursi += to_string(kursi);
+        // Validasi input tidak kosong
+        if (input_kursi.empty()) {
+            cout << "Input tidak boleh kosong!\n";
+            continue;
         }
+        
+        // Validasi input harus angka
+        bool is_number = true;
+        for (char c : input_kursi) {
+            if (!isdigit(c)) {
+                is_number = false;
+                break;
+            }
+        }
+        
+        if (!is_number) {
+            cout << "Input harus berupa angka!\n";
+            continue;
+        }
+        
+        kursi = stoi(input_kursi);
+        
+        // Validasi range nomor kursi
+        if (kursi < 1 || kursi > 40) {
+            cout << "Nomor kursi tidak valid. Pilih antara 1-40.\n";
+            continue;
+        }
+        
+        // Validasi kursi sudah terisi
+        if (kursi_status[kursi-1]) {
+            cout << "Kursi sudah terisi. Pilih kursi lain.\n";
+            continue;
+        }
+        
+        valid = true;
+        kursi_status[kursi-1] = true;
+        
+        if (i > 0) nomor_kursi += ",";
+        nomor_kursi += to_string(kursi);
     }
+}
     
     // Isi formulir pemesanan
     pesanan* new_pesanan = new pesanan;  // Pointer ke struct pesanan
