@@ -70,9 +70,9 @@ Node* head = nullptr;
 Node* tail = nullptr;
 
 // Nama file database
-const string USER_DATABASE = "users_database.txt";
-const string TIKET_DATABASE = "tiket_database.txt";
-const string PESANAN_DATABASE = "pesanan_database.txt";
+const string USER_DATABASE = "./database/users_database.txt";
+const string TIKET_DATABASE = "./datavase/tiket_database.txt";
+const string PESANAN_DATABASE = "./database/pesanan_database.txt";
 
 // Deklarasi fungsi
 void feature_choice(auth &auth);
@@ -189,6 +189,7 @@ void loadTiketFromFile(vector<tiket> &tiket_list) {
 
     tiket temp;
     string kursi;
+    
     while (getline(file, temp.id) && 
            getline(file, temp.kota_asal) && 
            getline(file, temp.kota_tujuan) &&
@@ -783,6 +784,7 @@ void feature_choice(auth &auth) {
 void regis(vector<users> &user_list, chance &chance, auth &auth) {
     users new_user;
     regex usernameFormat("^[a-zA-Z0-9_]{3,20}$");
+    regex password_format("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
 
     if (chance.regis_chance == 0) {
         cout << "\nKesempatan registrasi habis! Silakan mencoba lagi!\n";
@@ -793,10 +795,10 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
 
     cout << "\n========== Registrasi ==========\n" << endl;
     cout << "Masukkan username: "; cin.ignore(); getline(cin, new_user.username);
-    cout << "Masukkan password: "; getline(cin, new_user.password);
 
-    // CEK APAKAH USERNAME SUDAH TERDAFTAR
+    // * Validasi Username
     bool username_sudah_ada = false;
+
     for (const users &user : user_list) {
         if (user.username == new_user.username) {
             username_sudah_ada = true;
@@ -804,29 +806,36 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
         }
     }
 
-    if (username_sudah_ada) {
+    if(username_sudah_ada) {
         chance.regis_chance -= 1;
         cout << "\nUsername sudah terdaftar! Silakan gunakan username lain.\n";
         cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
-    }
-
-    // **VALIDASI INPUT**
-    if (new_user.username.empty()) {
+    } else if(new_user.username.empty()) {
         chance.regis_chance -= 1;
         cout << "\nUsername harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
-    } else if (new_user.password.empty()) {
-        chance.regis_chance -= 1;
-        cout << "\nPassword harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
-        regis(user_list, chance, auth);
-    } else if (!regex_match(new_user.username, usernameFormat)) {
+    } else if(!regex_match(new_user.username, usernameFormat)) {
         chance.regis_chance -= 1;
         cout << "\nUsername hanya boleh mengandung huruf, angka, dan underscore (_).\n";
         cout << "Minimal 3 karakter, maksimal 20 karakter.\n";
         cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
     }
+
+    cout << "Masukkan password: "; getline(cin, new_user.password);
+
+    // * Validasi Password
+    if(new_user.password.empty()) {
+        chance.regis_chance -= 1;
+        cout << "\nPassword harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
+        regis(user_list, chance, auth);
+    } else if(!regex_match(new_user.password, password_format)) {
+        chance.regis_chance -= 1;
+        cout << "\nPassword setidaknya mengandung huruf besar, huruf kecil dan angka! Minimal 8 karakter!" << endl; cout << "Kesempatan registrasi tersisa " << chance.regis_chance << "x lagi!\n";
+        regis(user_list, chance, auth);
+    }
+
 
     // **JIKA SEMUA VALID, TAMBAHKAN USER BARU**
     user_list.push_back(new_user);
