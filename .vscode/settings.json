@@ -1,5 +1,11 @@
 {
-    "files.associations": {
-        "iostream": "cpp"
-    }
+  "files.associations": {
+    "*.embeddedhtml": "html",
+    "iostream": "cpp",
+    "bitset": "cpp",
+    "format": "cpp",
+    "string": "cpp",
+    "istream": "cpp"
+  }
 }
+
