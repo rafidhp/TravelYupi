@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <filesystem>
 #include <iomanip>
 #include <ctime>
 #include <sstream>
@@ -59,7 +60,6 @@ struct pesanan {
     string metode_pembayaran;
     string waktu_pemesanan;
 };
-
 
 
 struct Node {
@@ -120,13 +120,13 @@ int main() {
 
 // Fungsi untuk memuat data pengguna dari file
 void loadUsersFromFile(vector<users> &user_list) {
+
+    filesystem::create_directories("./database");
+
     ifstream file(USER_DATABASE);
-    if (!file.is_open()) {
-        cout << "Database file tidak ditemukan. Membuat database baru.\n";
-        return;
-    }
 
     string username, password;
+
     while (getline(file, username) && getline(file, password)) {
         users temp_user;
         temp_user.username = username;
@@ -139,7 +139,9 @@ void loadUsersFromFile(vector<users> &user_list) {
 
 // Fungsi untuk menyimpan data pengguna ke file
 void saveUserToFile(const users &user) {
+
     ofstream file(USER_DATABASE, ios::app);
+
     if (!file.is_open()) {
         cout << "Error: Tidak dapat membuka file database.\n";
         return;
@@ -166,7 +168,6 @@ void loadTiketFromFile(vector<tiket> &tiket_list) {
             {"TY007", "Yogyakarta", "Jakarta", "15-04-2025", "16:00", "210000", 40},
             {"TY008", "Bandung", "Jakarta", "15-04-2025", "13:00", "100000", 40},
             {"TY009", "Bandung", "Jakarta", "15-04-2025", "11:00", "100000", 40}
-
 
         };
         
