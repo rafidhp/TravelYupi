@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <filesystem>
 #include <iomanip>
 #include <ctime>
 #include <sstream>
@@ -61,7 +62,6 @@ struct pesanan {
 };
 
 
-
 struct Node {
     pesanan data;       // Data pesanan
     Node* next;         // Pointer ke node berikutnya
@@ -73,9 +73,9 @@ Node* head = nullptr;
 Node* tail = nullptr;
 
 // Nama file database
-const string USER_DATABASE = "users_database.txt";
-const string TIKET_DATABASE = "tiket_database.txt";
-const string PESANAN_DATABASE = "pesanan_database.txt";
+const string USER_DATABASE = "./database/users_database.txt";
+const string TIKET_DATABASE = "./datavase/tiket_database.txt";
+const string PESANAN_DATABASE = "./database/pesanan_database.txt";
 
 // Deklarasi fungsi
 void feature_choice(auth &auth);
@@ -120,13 +120,13 @@ int main() {
 
 // Fungsi untuk memuat data pengguna dari file
 void loadUsersFromFile(vector<users> &user_list) {
+
+    filesystem::create_directories("./database");
+
     ifstream file(USER_DATABASE);
-    if (!file.is_open()) {
-        cout << "Database file tidak ditemukan. Membuat database baru.\n";
-        return;
-    }
 
     string username, password;
+
     while (getline(file, username) && getline(file, password)) {
         users temp_user;
         temp_user.username = username;
@@ -139,7 +139,9 @@ void loadUsersFromFile(vector<users> &user_list) {
 
 // Fungsi untuk menyimpan data pengguna ke file
 void saveUserToFile(const users &user) {
+
     ofstream file(USER_DATABASE, ios::app);
+
     if (!file.is_open()) {
         cout << "Error: Tidak dapat membuka file database.\n";
         return;
@@ -167,7 +169,6 @@ void loadTiketFromFile(vector<tiket> &tiket_list) {
             {"TY008", "Bandung", "Jakarta", "15-04-2025", "13:00", "100000", 40},
             {"TY009", "Bandung", "Jakarta", "15-04-2025", "11:00", "100000", 40}
 
-
         };
         
         for (size_t i = 0; i < sizeof(default_tikets)/sizeof(default_tikets[0]); i++) {
@@ -193,6 +194,7 @@ void loadTiketFromFile(vector<tiket> &tiket_list) {
 
     tiket temp;
     string kursi;
+    
     while (getline(file, temp.id) && 
            getline(file, temp.kota_asal) && 
            getline(file, temp.kota_tujuan) &&
@@ -237,6 +239,7 @@ void loadPesananFromFile(vector<pesanan> &pesanan_list) {
 
     pesanan temp;
     string jumlah;
+
     while (getline(file, temp.username) && 
            getline(file, temp.id_tiket) && 
            getline(file, temp.kota_asal) && 
@@ -347,7 +350,7 @@ void lihatTiket(auth &auth) {
 
 // Fungsi validasi nama (hanya huruf dan spasi)
 bool validasiNama(const string& nama) {
-    regex hanya_huruf("^[A-Za-z ]{3,}$");
+    regex hanya_huruf("^[A-Za-z][A-Za-z ]*$");
     return regex_match(nama, hanya_huruf);
 }
 
@@ -661,52 +664,51 @@ void pesanTiket(auth &auth) {
         if (pilihan_tiket < 1 || pilihan_tiket > filtered_tiket.size()) {
             cout << "Pilihan harus antara 1-" << filtered_tiket.size() << "!\n";
             // Validasi input jumlah tiket
-string input_jumlah;
-do {
-    cout << "Banyak tiket: ";
-    getline(cin, input_jumlah);
-    
-    if (input_jumlah.empty()) {
-        cout << "Input tidak boleh kosong!\n";
-        continue;
-    }
-    
-    bool is_number = true;
-    for (char c : input_jumlah) {
-        if (!isdigit(c)) {
-            is_number = false;
-            break;
-        }
-    }
-    
-    if (!is_number) {
-        cout << "Hanya boleh diisi dengan angka!\n";
-        continue;
-    }
-    
-    jumlah_tiket = stoi(input_jumlah);
-    
-    if (jumlah_tiket <= 0) {
-        cout << "Jumlah tiket harus lebih dari 0!\n";
-        continue;
-    }
-    
-    // Jika semua validasi berhasil, keluar dari loop
-    break;
-    
-} while (true);
-            // Tampilkan daftar tiket lagi
-            cout << "\nTiket yang tersedia:\n" << endl;
-            cout << setw(5) << "No" << setw(10) << "ID" << setw(15) << "Tanggal" 
-                << setw(10) << "Jam" << setw(15) << "Harga" << setw(10) << "Kursi" << endl;
-            cout << string(60, '-') << endl;
+            string input_jumlah;
+
+            do {
+                cout << "Banyak tiket: ";
+                getline(cin, input_jumlah);
+                
+                if (input_jumlah.empty()) {
+                    cout << "Input tidak boleh kosong!\n";
+                    continue;
+                }
+                
+                bool is_number = true;
+                for (char c : input_jumlah) {
+                    if (!isdigit(c)) {
+                        is_number = false;
+                        break;
+                    }
+                }
+                
+                if (!is_number) {
+                    cout << "Hanya boleh diisi dengan angka!\n";
+                    continue;
+                }
+                
+                jumlah_tiket = stoi(input_jumlah);
+                
+                if (jumlah_tiket <= 0) {
+                    cout << "Jumlah tiket harus lebih dari 0!\n";
+                    continue;
+                }
+                
+                // Jika semua validasi berhasil, keluar dari loop
+                break;
+                
+            } while (true);
+                // Tampilkan daftar tiket lagi
+                cout << "\nTiket yang tersedia:\n" << endl;
+                cout << setw(5) << "No" << setw(10) << "ID" << setw(15) << "Tanggal" << setw(10) << "Jam" << setw(15) << "Harga" << setw(10) << "Kursi" << endl;
+                cout << string(60, '-') << endl;
             
-            for (size_t i = 0; i < filtered_tiket.size(); i++) {
-                cout << setw(5) << (i+1) << setw(10) << filtered_tiket[i].id 
-                    << setw(15) << filtered_tiket[i].tanggal << setw(10) << filtered_tiket[i].jam 
-                    << setw(15) << filtered_tiket[i].harga << setw(10) << filtered_tiket[i].kursi_tersedia << endl;
-            }
-            
+                for (size_t i = 0; i < filtered_tiket.size(); i++) {
+                    cout << setw(5) << (i+1) << setw(10) << filtered_tiket[i].id 
+                        << setw(15) << filtered_tiket[i].tanggal << setw(10) << filtered_tiket[i].jam 
+                        << setw(15) << filtered_tiket[i].harga << setw(10) << filtered_tiket[i].kursi_tersedia << endl;
+                }
             continue;
         }
         
@@ -758,56 +760,57 @@ do {
     
     // Pilih kursi
     string nomor_kursi = "";
-for (int i = 0; i < jumlah_tiket; i++) {
-    int kursi;
-    bool valid = false;
-    string input_kursi;
-    
-    while (!valid) {
-        cout << "Pilih kursi: " ;
-        getline(cin, input_kursi);
+
+    for (int i = 0; i < jumlah_tiket; i++) {
+        int kursi;
+        bool valid = false;
+        string input_kursi;
         
-        // Validasi input tidak kosong
-        if (input_kursi.empty()) {
-            cout << "Input tidak boleh kosong!\n";
-            continue;
-        }
-        
-        // Validasi input harus angka
-        bool is_number = true;
-        for (char c : input_kursi) {
-            if (!isdigit(c)) {
-                is_number = false;
-                break;
+        while (!valid) {
+            cout << "Pilih kursi ke-" << (i + 1) << ": ";
+            getline(cin, input_kursi);
+            
+            // Validasi input tidak kosong
+            if (input_kursi.empty()) {
+                cout << "Input tidak boleh kosong!\n";
+                continue;
             }
+            
+            // Validasi input harus angka
+            bool is_number = true;
+            for (char c : input_kursi) {
+                if (!isdigit(c)) {
+                    is_number = false;
+                    break;
+                }
+            }
+            
+            if (!is_number) {
+                cout << "Input harus berupa angka!\n";
+                continue;
+            }
+            
+            kursi = stoi(input_kursi);
+            
+            // Validasi range nomor kursi
+            if (kursi < 1 || kursi > 40) {
+                cout << "Nomor kursi tidak valid. Pilih antara 1-40.\n";
+                continue;
+            }
+            
+            // Validasi kursi sudah terisi
+            // if (kursi_status[kursi-1]) {
+            //     cout << "Kursi sudah terisi. Pilih kursi lain.\n";
+            //     continue;
+            // }
+            
+            valid = true;
+            kursi_status[kursi-1] = true;
+            
+            if (i > 0) nomor_kursi += ",";
+            nomor_kursi += to_string(kursi);
         }
-        
-        if (!is_number) {
-            cout << "Input harus berupa angka!\n";
-            continue;
-        }
-        
-        kursi = stoi(input_kursi);
-        
-        // Validasi range nomor kursi
-        if (kursi < 1 || kursi > 40) {
-            cout << "Nomor kursi tidak valid. Pilih antara 1-40.\n";
-            continue;
-        }
-        
-        // Validasi kursi sudah terisi
-        if (kursi_status[kursi-1]) {
-            cout << "Kursi sudah terisi. Pilih kursi lain.\n";
-            continue;
-        }
-        
-        valid = true;
-        kursi_status[kursi-1] = true;
-        
-        if (i > 0) nomor_kursi += ",";
-        nomor_kursi += to_string(kursi);
     }
-}
     
     // Isi formulir pemesanan
     pesanan* new_pesanan = new pesanan;  // Pointer ke struct pesanan
@@ -829,7 +832,7 @@ for (int i = 0; i < jumlah_tiket; i++) {
     do {
         cout << "Nama: "; cin.ignore(); getline(cin, nama);
         if (!validasiNama(nama)) {
-            cout << "Nama Hanya Boleh Diisi Dengan Huruf. Mohon Masukkan Nama Anda Dengan Benar!" << endl;
+            cout << "Nama Hanya Boleh Diisi Dengan Huruf dan Minimal 2 Karakter. Mohon Masukkan Nama Anda Dengan Benar!" << endl;
         }
     } while (!validasiNama(nama));
     new_pesanan->nama_penumpang = nama;
@@ -882,7 +885,9 @@ for (int i = 0; i < jumlah_tiket; i++) {
     // Metode pembayaran
     cout << "\n========== Metode Pembayaran ==========\n" << endl;
     cout << "[1] Transfer\n[2] Cash\nPilih metode pembayaran: ";
+
     string input_metode;
+
     do {
         getline(cin, input_metode);
         if (input_metode.empty()) {
@@ -965,7 +970,8 @@ for (int i = 0; i < jumlah_tiket; i++) {
     addPesananToHistory(*new_pesanan);
 
     // Cetak struk
-    ofstream struk("struk_" + new_pesanan->username + "_" + new_pesanan->id_tiket + ".txt");
+    ofstream struk("./struk/struk_" + new_pesanan->username + "_" + new_pesanan->id_tiket + ".txt");
+
     if (struk.is_open()) {
         struk << "=============== STRUK PEMBAYARAN ===============" << endl;
         struk << "TravelYupi - Tiket Kereta" << endl;
@@ -1126,7 +1132,9 @@ string getHiddenPassword() {
 
 // Fungsi untuk registrasi pengguna baru
 void regis(vector<users> &user_list, chance &chance, auth &auth) {
+    users new_user;
     regex usernameFormat("^[a-zA-Z0-9_]{3,20}$");
+    regex password_format("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
 
     if (chance.regis_chance == 0) {
         cout << "\nKesempatan registrasi habis! Silakan mencoba lagi!\n";
@@ -1135,30 +1143,11 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
         return;
     }
 
-    cout << "\n========== Registrasi ==========\n";
-    
-    users new_user;
+    cout << "\n========== Registrasi ==========\n" << endl;
+    cout << "Masukkan username: "; getline(cin, new_user.username);
 
-    // LOOP UNTUK VALIDASI USERNAME
-    while (true) {
-        cout << "Masukkan username: ";
-        getline(cin, new_user.username);
-
-        // Cek input kosong
-        if (new_user.username.empty()) {
-            cout << "\nUsername harus diisi!\n";
-            continue;
-        }
-
-        // Cek format
-        if (!regex_match(new_user.username, usernameFormat)) {
-            cout << "\nUsername hanya boleh mengandung huruf, angka, dan underscore (_).\n";
-            cout << "Minimal 3 karakter, maksimal 20 karakter.\n";
-            continue;
-        }
-
-        // Cek apakah username sudah terdaftar
-        bool username_sudah_ada = false;
+    // * Validasi Username
+    bool username_sudah_ada = false;
         for (const users &user : user_list) {
             if (user.username == new_user.username) {
                 username_sudah_ada = true;
@@ -1166,43 +1155,45 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
             }
         }
 
-        if (username_sudah_ada) {
-            chance.regis_chance -= 1;
-            cout << "\nUsername sudah terdaftar! Silakan gunakan username lain.\n";
-            cout << "Kesempatan tersisa: " << chance.regis_chance << "x\n";
-
-            if (chance.regis_chance == 0) {
-                cout << "\nKesempatan registrasi habis! Silakan mencoba lagi!\n";
-                chance.regis_chance = 3;
-                choice1(user_list, chance, auth);
-                return;
-            }
-            continue;
-        }
-
-        break; // Username valid
+    if(new_user.username.empty()) {
+        chance.regis_chance -= 1;
+        cout << "\nUsername harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
+        regis(user_list, chance, auth);
+    } else if (username_sudah_ada) {
+        chance.regis_chance -= 1;
+        cout << "\nUsername sudah terdaftar! Silakan gunakan username lain.\n";
+        cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
+        regis(user_list, chance, auth);
+    } else if(!regex_match(new_user.username, usernameFormat)) {
+        chance.regis_chance -= 1;
+        cout << "\nUsername hanya boleh mengandung huruf, angka, dan underscore (_).\n";
+        cout << "Minimal 3 karakter, maksimal 20 karakter.\n";
+        cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
+        regis(user_list, chance, auth);
     }
 
-    // LOOP UNTUK VALIDASI PASSWORD
-    while (true) {
-        cout << "Masukkan password: ";
-        new_user.password = getHiddenPassword();
+    cout << "Masukkan password: "; 
+    new_user.password = getHiddenPassword();
 
-        if (new_user.password.empty()) {
-            cout << "\nPassword harus diisi!\n";
-            continue;
-        }
-
-        break; // Password valid
+    // * Validasi password
+    if(new_user.password.empty()) {
+        chance.regis_chance -= 1;
+        cout << "\nPassword harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
+        regis(user_list, chance, auth);
+    } else if(!regex_match(new_user.password, password_format)) {
+        chance.regis_chance -= 1;
+        cout << "\nPassword setidaknya mengandung huruf besar, huruf kecil dan angka! Minimal 8 karakter!" << endl; cout << "Kesempatan registrasi tersisa " << chance.regis_chance << "x lagi!\n";
+        regis(user_list, chance, auth);
     }
 
-    // Jika valid, simpan user baru
+    // Simpan user baru
     user_list.push_back(new_user);
     saveUserToFile(new_user);
     cout << "\nRegistrasi berhasil! Silakan login.\n";
     
-    // Kembali ke menu utama
-    choice1(user_list, chance, auth);
+    // Kembali ke login
+    chance.regis_chance = 3;
+    login(user_list, auth);
 }
 
 // Fungsi untuk login pengguna
@@ -1210,18 +1201,10 @@ void login(vector<users> &user_list, auth &auth) {
     string username, password;
 
     cout << "\n========== Login ==========\n" << endl;
-    cout << "Masukkan username: "; 
-    getline(cin, username);
+    cout << "Masukkan username: "; getline(cin, username);
     cout << "Masukkan password: ";
-    password = getHiddenPassword();
 
-    // Periksa apakah user_list kosong
-    if (user_list.empty()) {
-        cout << "\nBelum ada pengguna terdaftar! Silakan registrasi terlebih dahulu.\n";
-        chance temp_chance;
-        choice1(user_list, temp_chance, auth);
-        return;
-    }
+    password = getHiddenPassword();
 
     for(size_t i = 0; i < user_list.size(); i++) {
         if(user_list[i].username == username && user_list[i].password == password) {
@@ -1254,8 +1237,7 @@ void choice1(vector<users> &user_list, chance &chance, auth &auth) {
     cout << "[1] Login\n[2] Registrasi\n[3] Keluar\n";
 
     while (!valid) {
-        cout << "Silakan pilih menu berdasarkan angka: ";
-        getline(cin, choice);
+        cout << "Silakan pilih menu berdasarkan angka: "; getline(cin, choice);
 
         if (choice.empty()) {
             cout << "Input tidak boleh kosong! Silakan isi angka 1-3.\n" << endl;
