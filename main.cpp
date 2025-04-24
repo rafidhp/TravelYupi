@@ -350,7 +350,7 @@ void lihatTiket(auth &auth) {
 
 // Fungsi validasi nama (hanya huruf dan spasi)
 bool validasiNama(const string& nama) {
-    regex hanya_huruf("^[A-Za-z ]{3,}$");
+    regex hanya_huruf("^[A-Za-z][A-Za-z ]*$");
     return regex_match(nama, hanya_huruf);
 }
 
@@ -767,7 +767,7 @@ void pesanTiket(auth &auth) {
         string input_kursi;
         
         while (!valid) {
-            cout << "Pilih kursi: " ;
+            cout << "Pilih kursi ke-" << (i + 1) << ": ";
             getline(cin, input_kursi);
             
             // Validasi input tidak kosong
@@ -832,7 +832,7 @@ void pesanTiket(auth &auth) {
     do {
         cout << "Nama: "; cin.ignore(); getline(cin, nama);
         if (!validasiNama(nama)) {
-            cout << "Nama Hanya Boleh Diisi Dengan Huruf. Mohon Masukkan Nama Anda Dengan Benar!" << endl;
+            cout << "Nama Hanya Boleh Diisi Dengan Huruf dan Minimal 2 Karakter. Mohon Masukkan Nama Anda Dengan Benar!" << endl;
         }
     } while (!validasiNama(nama));
     new_pesanan->nama_penumpang = nama;
