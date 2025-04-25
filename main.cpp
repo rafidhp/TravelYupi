@@ -776,11 +776,10 @@ void pesanTiket(auth &auth) {
         cout << setw(2) << (i+4) << (kursi_status[i+3] ? "(X)" : "(O)") << endl;
     }
 
-    delete[] kursi_status;
     
     // Pilih kursi
     string nomor_kursi = "";
-
+    
     for (int i = 0; i < jumlah_tiket; i++) {
         int kursi;
         bool valid = false;
@@ -831,6 +830,8 @@ void pesanTiket(auth &auth) {
             nomor_kursi += to_string(kursi);
         }
     }
+    
+    delete[] kursi_status;
     
     // Isi formulir pemesanan
     pesanan* new_pesanan = new pesanan;  // Pointer ke struct pesanan
