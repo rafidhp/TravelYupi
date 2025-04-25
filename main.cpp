@@ -118,6 +118,26 @@ int main() {
     return 0;
 }
 
+// Ffungsi Sinkronisasi Ketersediaan Kursi
+void syncKursiTersediaDenganPesanan(vector<tiket>& tiket_list) {
+    vector<pesanan> semua_pesanan;
+    loadPesananFromFile(semua_pesanan);
+
+    for (auto& tiket : tiket_list) {
+        int kursi_terpakai = 0;
+        for (const auto& p : semua_pesanan) {
+            if (p.id_tiket == tiket.id) {
+                istringstream iss(p.nomor_kursi);
+                string nomor;
+                while (getline(iss, nomor, ',')) {
+                    kursi_terpakai++;
+                }
+            }
+        }
+        tiket.kursi_tersedia = 40 - kursi_terpakai;
+    }
+}
+
 // Fungsi untuk memuat data pengguna dari file
 void loadUsersFromFile(vector<users> &user_list) {
 
@@ -205,7 +225,7 @@ void loadTiketFromFile(vector<tiket> &tiket_list) {
         temp.kursi_tersedia = stoi(kursi);
         tiket_list.push_back(temp);
     }
-    
+    syncKursiTersediaDenganPesanan (tiket_list);
     file.close();
 }
 
@@ -799,10 +819,10 @@ void pesanTiket(auth &auth) {
             }
             
             // Validasi kursi sudah terisi
-            // if (kursi_status[kursi-1]) {
-            //     cout << "Kursi sudah terisi. Pilih kursi lain.\n";
-            //     continue;
-            // }
+            if (kursi_status[kursi-1]) {
+                cout << "Kursi sudah terisi. Pilih kursi lain.\n";
+                continue;
+            }
             
             valid = true;
             kursi_status[kursi-1] = true;
