@@ -74,7 +74,7 @@ Node* tail = nullptr;
 
 // Nama file database
 const string USER_DATABASE = "./database/users_database.txt";
-const string TIKET_DATABASE = "./datavase/tiket_database.txt";
+const string TIKET_DATABASE = "./database/tiket_database.txt";
 const string PESANAN_DATABASE = "./database/pesanan_database.txt";
 
 // Deklarasi fungsi
