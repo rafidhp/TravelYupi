@@ -767,8 +767,7 @@ void pesanTiket(auth &auth) {
         string input_kursi;
         
         while (!valid) {
-            cout << "Pilih kursi: " ;
-            getline(cin, input_kursi);
+            cout << "Pilih kursi: " ; getline(cin, input_kursi);
             
             // Validasi input tidak kosong
             if (input_kursi.empty()) {
@@ -799,10 +798,10 @@ void pesanTiket(auth &auth) {
             }
             
             // Validasi kursi sudah terisi
-            // if (kursi_status[kursi-1]) {
-            //     cout << "Kursi sudah terisi. Pilih kursi lain.\n";
-            //     continue;
-            // }
+            if (kursi_status[kursi-1]) {
+                cout << "Kursi sudah terisi. Pilih kursi lain.\n";
+                continue;
+            }
             
             valid = true;
             kursi_status[kursi-1] = true;
@@ -832,7 +831,7 @@ void pesanTiket(auth &auth) {
     do {
         cout << "Nama: "; cin.ignore(); getline(cin, nama);
         if (!validasiNama(nama)) {
-            cout << "Nama Hanya Boleh Diisi Dengan Huruf. Mohon Masukkan Nama Anda Dengan Benar!" << endl;
+            cout << "Nama Hanya Boleh Diisi Dengan Huruf! Mohon Masukkan Nama Anda Dengan Benar!" << endl;
         }
     } while (!validasiNama(nama));
     new_pesanan->nama_penumpang = nama;
