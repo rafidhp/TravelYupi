@@ -76,6 +76,7 @@ Node* tail = nullptr;
 const string USER_DATABASE = "./database/users_database.txt";
 const string TIKET_DATABASE = "./database/tiket_database.txt";
 const string PESANAN_DATABASE = "./database/pesanan_database.txt";
+const string SALDO_DATABASE = "./database/saldo.txt";
 
 // Deklarasi fungsi
 void feature_choice(auth &auth);
@@ -93,7 +94,14 @@ void savePesananToFile(const pesanan &new_pesanan);
 string getCurrentDateTime();
 void updateTiketDatabase(const vector<tiket> &tiket_list);
 void addPesananToHistory(pesanan new_pesanan);
-bool validasiKembali(const string& input); 
+bool validasiKembali(const string& input);
+
+// saldo function
+// void save_saldo(const string &username, int saldo);
+// int get_saldo(const string &username);
+// void lihat_saldo(const string &username);
+// void update_saldo(const string& username, int nominal);
+// void topup_saldo(const string& username, bool back_to_menu = true);
 
 string capitalize(const string& input) {
     string result = input;
@@ -175,6 +183,7 @@ void saveUserToFile(const users &user) {
 
 // Fungsi untuk memuat data tiket dari file
 void loadTiketFromFile(vector<tiket> &tiket_list) {
+
     ifstream file(TIKET_DATABASE);
     if (!file.is_open()) {
         // Jika file tidak ada, buat tiket default
@@ -554,6 +563,103 @@ bool validasiLanjut(const string& input) {
     return true;
 }
 
+
+// * Saldo function start
+
+void save_saldo(const string &username, int saldo) {
+
+    filesystem::create_directories("./database");
+    ofstream file(SALDO_DATABASE, ios::app);
+
+    if(file.is_open()) {
+        file << username << endl;
+        file << saldo << endl;
+        file.close();
+    }
+}
+
+int get_saldo(const string& username) {
+    ifstream file(SALDO_DATABASE);
+
+    if (!file.is_open()) return 0;
+    string user;
+    string line;
+
+    while (getline(file, user) && getline(file, line)) {
+        if (user == username) return stoi(line);
+    }
+
+    return 0;
+}
+
+void lihat_saldo(const string &username) {
+    int saldo = get_saldo(username);
+    cout << "\nSaldo Anda saat ini adalah Rp." << saldo << endl;
+    
+    string input;
+    do {
+        cout << "\nTekan 1 untuk kembali: "; getline(cin, input);
+    } while (!validasiKembali(input));
+
+    auth auth;
+    feature_choice(auth);
+}
+
+void update_saldo(const string& username, int nominal) {
+    vector<pair<string, int>> data;
+    ifstream file(SALDO_DATABASE);
+    string user, line;
+    while (getline(file, user) && getline(file, line)) {
+        if (user == username)
+            data.push_back({user, nominal});
+        else
+            data.push_back({user, stoi(line)});
+    }
+    file.close();
+
+    ofstream out(SALDO_DATABASE);
+    for (auto& d : data) {
+        out << d.first << endl;
+        out << d.second << endl;
+    }
+    out.close();
+}
+
+void topup_saldo(const string& username, bool back_to_menu = true) {
+    string input;
+    int nominal;
+
+    cout << "\n-- Tekan q untuk keluar --" << endl;
+    cout << "Masukkan nominal top-up (min: Rp.5000): Rp."; getline(cin, input);
+    
+    try {
+        nominal = stoi(input);
+    } catch (...) {
+        cout << "\nInput tidak valid! Input hanya boleh angka!\n";
+        topup_saldo(username, back_to_menu);
+        return;
+    }
+
+    if (nominal <= 4999) {
+        cout << "\nMinimal Top-up adalah Rp.5000!\n";
+        topup_saldo(username, back_to_menu);
+        return;
+    }
+
+    int saldo_sekarang = get_saldo(username);
+    int saldo_baru = saldo_sekarang + nominal;
+    update_saldo(username, saldo_baru);
+    cout << "\nTop-up berhasil! Saldo baru: Rp." << saldo_baru << endl;
+
+    if(back_to_menu) {
+        auth auth;
+        auth.user_login = username;
+        feature_choice(auth);
+    }
+}
+
+// * Saldo function end
+
 // Fungsi untuk memesan tiket
 void pesanTiket(auth &auth) {
     string kota_asal, kota_tujuan, tanggal;
@@ -587,11 +693,10 @@ void pesanTiket(auth &auth) {
         getline(cin, tanggal);
     } while (!validasiTanggal(tanggal, tiket_list));
 
-
     // Validasi input jumlah tiket
     string input_jumlah;
     do {
-        cout << "Banyak tiket: ";
+        cout << "Banyak tiket yang ingin dipesan: ";
         getline(cin, input_jumlah);
         
         if (input_jumlah.empty()) {
@@ -616,6 +721,9 @@ void pesanTiket(auth &auth) {
         
         if (jumlah_tiket <= 0) {
             cout << "Jumlah tiket harus lebih dari 0!\n";
+            continue;
+        } else if(jumlah_tiket > 40) {
+            cout << "Jumlah tiket tidak boleh lebih dari 40!\n" << endl;
             continue;
         }
         
@@ -776,7 +884,6 @@ void pesanTiket(auth &auth) {
         cout << setw(2) << (i+4) << (kursi_status[i+3] ? "(X)" : "(O)") << endl;
     }
 
-    
     // Pilih kursi
     string nomor_kursi = "";
     
@@ -905,7 +1012,7 @@ void pesanTiket(auth &auth) {
 
     // Metode pembayaran
     cout << "\n========== Metode Pembayaran ==========\n" << endl;
-    cout << "[1] Transfer\n[2] Cash\nPilih metode pembayaran: ";
+    cout << "[1] Bayar (saldo: Rp." << get_saldo(auth.user_login) << ") \n[2] Batal\nApakah Anda ingin melanjutkan pembayaran: ";
 
     string input_metode;
 
@@ -923,49 +1030,42 @@ void pesanTiket(auth &auth) {
     } while (true);
 
     if (input_metode == "1") {
-        new_pesanan->metode_pembayaran = "Transfer";
-    } else {
-        new_pesanan->metode_pembayaran = "Cash";
-    }
+        new_pesanan->metode_pembayaran = "E-Wallet";
 
-    // Form pembayaran
-    cout << "\n========== Form Pembayaran ==========\n" << endl;
-    cout << "Total yang harus dibayar: Rp " << new_pesanan->total_harga << endl;
+        int saldo = get_saldo(auth.user_login);
+        int harga_total = stoi(new_pesanan->total_harga);
 
-    string jumlah_bayar;
-    do {
-        cout << "Masukkan jumlah pembayaran: Rp ";
-        getline(cin, jumlah_bayar);
-        
-        if (jumlah_bayar.empty()) {
-            cout << "Input tidak boleh kosong!\n";
-            continue;
-        }
-        
-        // Cek apakah input adalah angka
-        bool is_number = true;
-        for (char c : jumlah_bayar) {
-            if (!isdigit(c)) {
-                is_number = false;
-                break;
+        if(saldo >= harga_total) {
+            update_saldo(auth.user_login, saldo - harga_total);
+            cout << "\nSelamat pembayaran Anda berhasil! Sisa saldo Anda adalah Rp." << (saldo - harga_total) << endl;
+        } else {
+            cout << "\nMaaf saldo Anda tidak mencukupi untuk pembayaran tiket ini!" << endl;
+            cout << "Saldo Anda Rp." << saldo << ", Total harga Rp." << harga_total << endl;
+            cout << "\n[1] Top-up saldo\n[2] Batalkan pesanan\nSilakan pilih sesuai pilihan: ";
+
+            string choice;
+            getline(cin, choice);
+
+            if(choice == "1") {
+                topup_saldo(auth.user_login, false);
+                saldo = get_saldo(auth.user_login);
+
+                if(saldo >= harga_total) {
+                    saldo = get_saldo(auth.user_login);
+                    update_saldo(auth.user_login, saldo - harga_total);
+                    cout << "\nSelamat pembayaran Anda berhasil! Sisa saldo Anda adalah Rp." << saldo - harga_total << endl;
+                } else {
+                    cout << "\nMaaf saldo Anda masih belum cukup untuk pembayaran ini! Pemesanan dibatalkan!\n";
+                    feature_choice(auth);
+                }
+            } else {
+                cout << "\nPemesanan dibatalkan! Terimakasih!" << endl;
+                feature_choice(auth);
             }
         }
-        
-        if (!is_number) {
-            cout << "Hanya boleh diisi dengan angka!\n";
-            continue;
-        }
-        
-        if (stoi(jumlah_bayar) < stoi(new_pesanan->total_harga)) {
-            cout << "Jumlah pembayaran kurang. Silakan masukkan jumlah yang cukup.\n";
-            continue;
-        }
-        
-        break;
-    } while (true);
-
-    if (stoi(jumlah_bayar) > stoi(new_pesanan->total_harga)) {
-        cout << "Kembalian: Rp " << (stoi(jumlah_bayar) - stoi(new_pesanan->total_harga)) << endl;
+    } else {
+        cout << "\nPemesanan dibatalkan! Terimakasih!" << endl;
+        feature_choice(auth);
     }
 
     // Input lanjut setelah pembayaran
@@ -991,6 +1091,7 @@ void pesanTiket(auth &auth) {
     addPesananToHistory(*new_pesanan);
 
     // Cetak struk
+    filesystem::create_directories("./struk");
     ofstream struk("./struk/struk_" + new_pesanan->username + "_" + new_pesanan->id_tiket + ".txt");
 
     if (struk.is_open()) {
@@ -1088,20 +1189,21 @@ void riwayatPesanan(auth &auth) {
     feature_choice(auth);
 }
 
+
 // Fungsi untuk menu fitur
 void feature_choice(auth &auth) {
     string choice;
     bool valid = false;
 
     cout << "\n========== Menu Fitur ==========\n" << endl;
-    cout << "[1] Lihat Semua Tiket\n[2] Pesan Tiket\n[3] Riwayat Pesanan\n[4] Logout\n";
+    cout << "[1] Lihat Semua Tiket\n[2] Pesan Tiket\n[3] Riwayat Pesanan\n[4] Lihat Saldo\n[5] TopUp Saldo\n[6] Logout\n";
 
     while (!valid) {
         cout << "Silakan pilih fitur berdasarkan angka: ";
         getline(cin, choice);
 
         if (choice.empty()) {
-            cout << "Input tidak boleh kosong! Silakan isi angka 1-4.\n" << endl;
+            cout << "Input tidak boleh kosong! Silakan isi angka 1-6.\n" << endl;
         } else if (choice == "1") {
             lihatTiket(auth);
             valid = true;
@@ -1111,7 +1213,13 @@ void feature_choice(auth &auth) {
         } else if (choice == "3") {
             riwayatPesanan(auth);
             valid = true;
-        } else if (choice == "4") {
+        } else if(choice == "4") {
+            lihat_saldo(auth.user_login);
+            valid = true;
+        } else if(choice == "5") {
+            topup_saldo(auth.user_login, true);
+            valid = true;
+        } else if (choice == "6") {
             cout << "\nLogout berhasil! Sampai jumpa lagi " << auth.user_login << "!" << endl;
             auth.user_login = ""; // Reset user login
             vector<users> user_list;
@@ -1210,6 +1318,7 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
     // Simpan user baru
     user_list.push_back(new_user);
     saveUserToFile(new_user);
+    save_saldo(new_user.username, 0);
     cout << "\nRegistrasi berhasil! Silakan login.\n";
     
     // Kembali ke login
