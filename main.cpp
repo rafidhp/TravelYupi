@@ -12,6 +12,8 @@
 #include <conio.h> 
 #include <limits>
 #include <set>
+#include <thread>
+#include <chrono>
 
 using namespace std;
 
@@ -95,6 +97,7 @@ string getCurrentDateTime();
 void updateTiketDatabase(const vector<tiket> &tiket_list);
 void addPesananToHistory(pesanan new_pesanan);
 bool validasiKembali(const string& input);
+void cls();
 
 // saldo function
 // void save_saldo(const string &username, int saldo);
@@ -102,6 +105,15 @@ bool validasiKembali(const string& input);
 // void lihat_saldo(const string &username);
 // void update_saldo(const string& username, int nominal);
 // void topup_saldo(const string& username, bool back_to_menu = true);
+
+void cls() {
+    #ifdef _WIN32
+        this_thread::sleep_for(chrono::milliseconds(500));
+        system("cls"); // Untuk Windows
+    #else
+        system("clear"); // Untuk Linux/Mac
+    #endif
+}
 
 string capitalize(const string& input) {
     string result = input;
@@ -373,6 +385,7 @@ void lihatTiket(auth &auth) {
         cout << "\nTekan 1 untuk kembali: ";
         getline(cin, input);
     } while (!validasiKembali(input));
+    cls();
     
     feature_choice(auth);
 }
@@ -600,7 +613,8 @@ void lihat_saldo(const string &username) {
     do {
         cout << "\nTekan 1 untuk kembali: "; getline(cin, input);
     } while (!validasiKembali(input));
-
+    cls();
+    
     auth auth;
     feature_choice(auth);
 }
@@ -625,7 +639,7 @@ void update_saldo(const string& username, int nominal) {
     out.close();
 }
 
-void topup_saldo(const string& username, bool back_to_menu = true) {
+void topup_saldo(const string& username, bool back_to_menu) {
     string input;
     int nominal;
 
@@ -636,19 +650,21 @@ void topup_saldo(const string& username, bool back_to_menu = true) {
         nominal = stoi(input);
     } catch (...) {
         cout << "\nInput tidak valid! Input hanya boleh angka!\n";
-        topup_saldo(username, back_to_menu);
+        topup_saldo(username, true);
         return;
     }
 
     if (nominal <= 4999) {
         cout << "\nMinimal Top-up adalah Rp.5000!\n";
-        topup_saldo(username, back_to_menu);
+        topup_saldo(username, true);
         return;
     }
 
     int saldo_sekarang = get_saldo(username);
     int saldo_baru = saldo_sekarang + nominal;
     update_saldo(username, saldo_baru);
+
+    cls();
     cout << "\nTop-up berhasil! Saldo baru: Rp." << saldo_baru << endl;
 
     if(back_to_menu) {
@@ -732,6 +748,8 @@ void pesanTiket(auth &auth) {
         
     } while (true);
 
+    cls();
+
     kota_asal = capitalize(kota_asal);
     kota_tujuan = capitalize(kota_tujuan);
     
@@ -760,6 +778,11 @@ void pesanTiket(auth &auth) {
     int pilihan_tiket;
     string input_pilihan;
     bool pilihan_valid = false;
+
+    if(filtered_tiket.size() <= 0) {
+        cout << "\nTidak ada tiket yang tersedia!" << endl;
+        cls();
+    }
 
     while (!pilihan_valid) {
         cout << "\nPilih tiket (1-" << filtered_tiket.size() << "): ";
@@ -842,6 +865,8 @@ void pesanTiket(auth &auth) {
         
         pilihan_valid = true;
     }
+
+    cls();
 
     tiket selected_tiket = filtered_tiket[pilihan_tiket - 1];
     
@@ -939,6 +964,8 @@ void pesanTiket(auth &auth) {
     }
     
     delete[] kursi_status;
+
+    cls();
     
     // Isi formulir pemesanan
     pesanan* new_pesanan = new pesanan;  // Pointer ke struct pesanan
@@ -990,6 +1017,7 @@ void pesanTiket(auth &auth) {
         cout << "\nTekan 1 untuk lanjut: ";
         getline(cin, input_lanjut);
     } while (!validasiLanjut(input_lanjut));
+    cls();
 
     // Hitung total harga
     int total = stoi(selected_tiket.harga) * jumlah_tiket;
@@ -1009,6 +1037,7 @@ void pesanTiket(auth &auth) {
         cout << "\nTekan 1 untuk lanjut: ";
         getline(cin, input_lanjut);
     } while (!validasiLanjut(input_lanjut));
+    cls();
 
     // Metode pembayaran
     cout << "\n========== Metode Pembayaran ==========\n" << endl;
@@ -1028,6 +1057,7 @@ void pesanTiket(auth &auth) {
         }
         break;
     } while (true);
+    cls();
 
     if (input_metode == "1") {
         new_pesanan->metode_pembayaran = "E-Wallet";
@@ -1073,6 +1103,7 @@ void pesanTiket(auth &auth) {
         cout << "\nTekan 1 untuk lanjut: ";
         getline(cin, input_lanjut);
     } while (!validasiLanjut(input_lanjut));
+    cls();
 
     // Selesaikan pemesanan
     new_pesanan->waktu_pemesanan = getCurrentDateTime();
@@ -1123,6 +1154,7 @@ void pesanTiket(auth &auth) {
         cout << "\nTekan 1 untuk kembali: ";
         getline(cin, input);
     } while (!validasiKembali(input));
+    cls();
     
     feature_choice(auth);
 
@@ -1185,6 +1217,7 @@ void riwayatPesanan(auth &auth) {
         cout << "\nTekan 1 untuk kembali: ";
         getline(cin, input);
     } while (!validasiKembali(input));
+    cls();
     
     feature_choice(auth);
 }
@@ -1205,21 +1238,27 @@ void feature_choice(auth &auth) {
         if (choice.empty()) {
             cout << "Input tidak boleh kosong! Silakan isi angka 1-6.\n" << endl;
         } else if (choice == "1") {
+            cls();
             lihatTiket(auth);
             valid = true;
         } else if (choice == "2") {
+            cls();
             pesanTiket(auth);
             valid = true;
         } else if (choice == "3") {
+            cls();
             riwayatPesanan(auth);
             valid = true;
         } else if(choice == "4") {
+            cls();
             lihat_saldo(auth.user_login);
             valid = true;
         } else if(choice == "5") {
+            cls();
             topup_saldo(auth.user_login, true);
             valid = true;
         } else if (choice == "6") {
+            cls();
             cout << "\nLogout berhasil! Sampai jumpa lagi " << auth.user_login << "!" << endl;
             auth.user_login = ""; // Reset user login
             vector<users> user_list;
@@ -1266,6 +1305,7 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
     regex password_format("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
 
     if (chance.regis_chance == 0) {
+        cls();
         cout << "\nKesempatan registrasi habis! Silakan mencoba lagi!\n";
         chance.regis_chance = 3; // Reset kesempatan
         choice1(user_list, chance, auth);
@@ -1285,16 +1325,19 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
         }
 
     if(new_user.username.empty()) {
+        cls();
         chance.regis_chance -= 1;
         cout << "\nUsername harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
     } else if (username_sudah_ada) {
+        cls();
         chance.regis_chance -= 1;
         cout << "\nUsername sudah terdaftar! Silakan gunakan username lain.\n";
         cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
     } else if(!regex_match(new_user.username, usernameFormat)) {
         chance.regis_chance -= 1;
+        cls();
         cout << "\nUsername hanya boleh mengandung huruf, angka, dan underscore (_).\n";
         cout << "Minimal 3 karakter, maksimal 20 karakter.\n";
         cout << "Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
@@ -1306,10 +1349,12 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
 
     // * Validasi password
     if(new_user.password.empty()) {
+        cls();
         chance.regis_chance -= 1;
         cout << "\nPassword harus diisi! Kesempatan registrasi tersisa: " << chance.regis_chance << "x\n";
         regis(user_list, chance, auth);
     } else if(!regex_match(new_user.password, password_format)) {
+        cls();
         chance.regis_chance -= 1;
         cout << "\nPassword setidaknya mengandung huruf besar, huruf kecil dan angka! Minimal 8 karakter!" << endl; cout << "Kesempatan registrasi tersisa " << chance.regis_chance << "x lagi!\n";
         regis(user_list, chance, auth);
@@ -1319,6 +1364,7 @@ void regis(vector<users> &user_list, chance &chance, auth &auth) {
     user_list.push_back(new_user);
     saveUserToFile(new_user);
     save_saldo(new_user.username, 0);
+    cls();
     cout << "\nRegistrasi berhasil! Silakan login.\n";
     
     // Kembali ke login
@@ -1339,12 +1385,14 @@ void login(vector<users> &user_list, auth &auth) {
     for(size_t i = 0; i < user_list.size(); i++) {
         if(user_list[i].username == username && user_list[i].password == password) {
             auth.user_login = username;
+            cls();
             cout << "\nLogin berhasil! Selamat datang " << auth.user_login << "!" << endl;
             feature_choice(auth);
             return;
         }
     }
 
+    cls();
     cout << "\nUsername atau password salah! Silakan coba lagi.\n";
     chance temp_chance;
     choice1(user_list, temp_chance, auth);
@@ -1352,6 +1400,7 @@ void login(vector<users> &user_list, auth &auth) {
 
 // Fungsi untuk keluar dari program
 void exitProgram() {
+    cls();
     cout << "\n========== Terima Kasih ==========\n" << endl;
     cout << "Terima kasih sudah menggunakan layanan TravelYupi!" << endl;
     cout << "Sampai jumpa kembali di perjalanan berikutnya.\n" << endl;
@@ -1372,9 +1421,11 @@ void choice1(vector<users> &user_list, chance &chance, auth &auth) {
         if (choice.empty()) {
             cout << "Input tidak boleh kosong! Silakan isi angka 1-3.\n" << endl;
         } else if (choice == "1") {
+            cls();
             login(user_list, auth);
             valid = true;
         } else if (choice == "2") {
+            cls();
             regis(user_list, chance, auth);
             valid = true;
         } else if (choice == "3") {
