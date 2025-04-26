@@ -641,23 +641,27 @@ void update_saldo(const string& username, int nominal) {
 
 void topup_saldo(const string& username, bool back_to_menu) {
     string input;
+    auth temp_auth;
     int nominal;
 
     cout << "\n-- Tekan q untuk keluar --" << endl;
     cout << "Masukkan nominal top-up (min: Rp.5000): Rp."; getline(cin, input);
+
+    if(input == "q" || input == "Q") {
+        cls();
+        feature_choice(temp_auth);
+    }
     
     try {
         nominal = stoi(input);
     } catch (...) {
         cout << "\nInput tidak valid! Input hanya boleh angka!\n";
-        topup_saldo(username, true);
-        return;
+        return topup_saldo(username, true);
     }
 
     if (nominal <= 4999) {
         cout << "\nMinimal Top-up adalah Rp.5000!\n";
-        topup_saldo(username, true);
-        return;
+        return topup_saldo(username, true);
     }
 
     int saldo_sekarang = get_saldo(username);
@@ -668,9 +672,8 @@ void topup_saldo(const string& username, bool back_to_menu) {
     cout << "\nTop-up berhasil! Saldo baru: Rp." << saldo_baru << endl;
 
     if(back_to_menu) {
-        auth auth;
-        auth.user_login = username;
-        feature_choice(auth);
+        temp_auth.user_login = username;
+        return feature_choice(temp_auth);
     }
 }
 
@@ -1089,8 +1092,7 @@ void pesanTiket(auth &auth) {
                     feature_choice(auth);
                 }
             } else {
-                cout << "\nPemesanan dibatalkan! Terimakasih!" << endl;
-                feature_choice(auth);
+                cout << "\nSilakan pilih antara 1-2!" << endl;
             }
         }
     } else {
